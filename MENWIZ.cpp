@@ -381,11 +381,11 @@ const char *menwiz::getErrorMessage(){
 
   switch(MW_error)
     {
-    case 0:   return (const char *) F("OK");
-    case 100: return (const char *) F("Too many item");
-    case 110: return (const char *) F("Unknown var type");
-    case 900: return (const char *) F("Cannot allocate memory");
-    default:  return (const char *) F("Unknown error");
+    case 0:   return (const char *) "OK";
+    case 100: return (const char *) "Too many item";
+    case 110: return (const char *) "Unknown var type";
+    case 900: return (const char *) "Cannot allocate memory";
+    default:  return (const char *) "Unknown error";
     }
   }
 
