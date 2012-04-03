@@ -6,7 +6,7 @@
 #define ERROR(a)     MW_error=a
 
 char buf[21];
-char MW_ver[]={"0.1.1"};
+char MW_ver[]={"0.1.2"};
 byte MW_error;
 byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
@@ -151,7 +151,6 @@ void menwiz::draw(){
   if((fl_splash==true) && (lap1<tm_splash)){
     //draw only once
     if(fl_splash_draw==false){
-      Serial.println("entered splashmode");
       cur_mode=MW_MODE_SPLASH;
       draw_splash();
       fl_splash_draw=true;
@@ -160,13 +159,13 @@ void menwiz::draw(){
   // if defined usrscreen & time since last button push > user defined time, draw it  
   else if((fl_usrscreen==true) && (lap2>tm_usrscreen)){
     cur_mode=MW_MODE_USRSCREEN;
-    Serial.println("entered usrmode");
     UsrScreen();
     }
   else{
   // if a button was pushed since last call, draw menu  
     cur_mode=MW_MODE_MENU;
-    draw_menu(cur_menu);
+    if(btx.last_button!=MW_BTNULL)
+    	draw_menu(cur_menu);
     }
   scanButtons();
   }
@@ -191,9 +190,8 @@ void menwiz::draw_splash(){
   }
   
 void menwiz::draw_menu(_menu *mc){
-  _option* op;
-  int i,j,sk,rstart,rstop;
-  char c;
+  int rstart,rstop,i,j;
+  _option *op;
 
   ERROR(0);
   lcd->setCursor(0,0);
@@ -204,7 +202,8 @@ void menwiz::draw_menu(_menu *mc){
     }
   else{
     rstart=max(0,mc->cur_item-(row-2));
-    rstop=min((mc->idx_o),rstart+(row));
+    rstop=min((mc->idx_o),(rstart+row));
+//    Serial.print(rstart);Serial.print(":");Serial.print(rstop);Serial.print(" row=");Serial.println(row);
     for (i=1,j=rstart;i<row;i++,j++){// for all remaining lcd rows
       if(j<rstop){
         op=(_option*)mc->o[j];
@@ -248,8 +247,9 @@ void menwiz::draw_val(_menu *mc){
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-      sprintf(buf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
-      lcd->print(buf);
+      sprintf(sbuf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
+//      SFORM(buf,sbuf,(int) col);
+      lcd->print(sbuf);
       break;      
     case MW_BOOLEAN:
       for(i=1;i<row;i++){
@@ -257,8 +257,9 @@ void menwiz::draw_val(_menu *mc){
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-      sprintf(buf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
-      lcd->print(buf);
+      sprintf(sbuf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
+//      SFORM(buf,sbuf,(int) col);
+      lcd->print(sbuf);
       break;      
     default:{}
     }
@@ -310,7 +311,6 @@ int menwiz::scanButtons(){
   if(cur_mode==MW_MODE_USRSCREEN){
     b=btx.BTU.check()+btx.BTD.check()+btx.BTL.check()+btx.BTR.check()+btx.BTE.check()+btx.BTC.check();
     if(b){
-      Serial.println("premuto");
       cur_mode=MW_MODE_MENU;
       btx.last_button=MW_BTNULL;
       }
@@ -320,6 +320,7 @@ int menwiz::scanButtons(){
   else if(btx.BTU.check()==ON){
     if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
       cur_menu->cur_item=(cur_menu->cur_item-1)<0?(cur_menu->idx_o-1):cur_menu->cur_item-1;
+//      cur_menu->cur_item=(cur_menu->cur_item-1)%(cur_menu->idx_o);
     btx.last_button=MW_BTU;}
   else if (btx.BTD.check()==ON){
     if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
@@ -381,11 +382,11 @@ const char *menwiz::getErrorMessage(){
 
   switch(MW_error)
     {
-    case 0:   return (const char *) F("OK");
-    case 100: return (const char *) F("Too many item");
-    case 110: return (const char *) F("Unknown var type");
-    case 900: return (const char *) F("Cannot allocate memory");
-    default:  return (const char *) F("Unknown error");
+    case 0:   return (const char *) "OK";
+    case 100: return (const char *) "Too many item";
+    case 110: return (const char *) "Unknown var type";
+    case 900: return (const char *) "Cannot allocate memory";
+    default:  return (const char *) "Unknown error";
     }
   }
 

@@ -17,7 +17,7 @@ The cons are
 - the library footprint is not very small. The provided example sketch dimension exceed 12k  
 
 Warnings
-- MENWIZ requires LiquidCrystal_I2C and Buttons libraries. Theya are enclosed with the package
+- MENWIZ requires LiquidCrystal_I2C and Buttons libraries, enclosed with the package
 - I tested MENWIZ mainly with 4x20 I2C lcd screens. It *should* work also with other lcds (e.g 16x2)), but i did'nt testvit extensively
 - Menu labels require memory. Be carefull not to run out of  memory (a simple memory-check function is included inthe lib: use it!)
 
