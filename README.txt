@@ -17,20 +17,20 @@ The cons are
 - the library footprint is not very small. The provided example sketch dimension exceed 12k  
 
 Warnings
-- the library has been tested with two library that I consider standard (included in the files). They could simply be not so standard.
-- I have tested it mainly with 4x20 lcd screen. It *should* work also with other lcds, but i did'nt tested ite extensively
-- Menu labels allocate memory. Be carefull not to tun out of ram memory (e simple routine is included to check it)
+- MENWIZ requires LiquidCrystal_I2C and Buttons libraries. Theya are enclosed with the package
+- I tested MENWIZ mainly with 4x20 I2C lcd screens. It *should* work also with other lcds (e.g 16x2)), but i did'nt testvit extensively
+- Menu labels require memory. Be carefull not to run out of  memory (a simple memory-check function is included inthe lib: use it!)
 
-If you are interested you can find the files to the following url:
+The library is avalable at:
 gethub.com/brunialti/MENWIZ
 
-Any feed back is wellcome. Should you be interested I can mantain and expand.
-Keep in minD that I want to keep it simple.
+Any feed back is welcome. Should you be interested I can mantain and expand.
+Keep in mind that I want to keep it simple.
 
 Next steps are:
 - new data types
 - user defined navigation callback routine (so you can use any navigation device you like, inside the framework)
-- actions: callback routines to be executed by menu 
+- actions: callback routines to be executed from menu 
 
 The TEST_LIB zip file contains the library used to test the MENWIZ lib.
 It should be standard, neverthless should you have some problem, try using it
