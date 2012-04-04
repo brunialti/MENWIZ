@@ -144,6 +144,7 @@ void menwiz::begin(void *l,int c, int r){
   lcd->noCursor();
   lcd->createChar(0,c0);
   sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
+  fl_menu_draw=false;
   }
 
 char* menwiz::getVer(){
@@ -155,30 +156,35 @@ char* menwiz::getVer(){
 void menwiz::draw(){
   
   ERROR(0);
+  scanButtons();
   int long lap1=(millis()-tm_start);
   int long lap2=(millis()-btx.tm_push);
 
   // if defined splashscreen & not yet drawn & time window is ok, draw it  
   if((fl_splash==true) && (lap1<tm_splash)){
+//    Serial.print("SPLASH");
+    cur_mode=MW_MODE_SPLASH;
     //draw only once
     if(fl_splash_draw==false){
-      cur_mode=MW_MODE_SPLASH;
       draw_splash();
       fl_splash_draw=true;
       }
     }
   // if defined usrscreen & time since last button push > user defined time, draw it  
   else if((fl_usrscreen==true) && (lap2>tm_usrscreen)){
+//    Serial.print("USER");
     cur_mode=MW_MODE_USRSCREEN;
+    fl_menu_draw=false;
     UsrScreen();
     }
   else{
   // if a button was pushed since last call, draw menu  
+//    Serial.print("MENU");
     cur_mode=MW_MODE_MENU;
-    if(btx.last_button!=MW_BTNULL)
-    	draw_menu(cur_menu);
+    if((btx.last_button!=MW_BTNULL) || (!fl_menu_draw))
+	fl_menu_draw=true;
+	draw_menu(cur_menu);
     }
-  scanButtons();
   }
 
 void menwiz::draw_splash(){
@@ -252,22 +258,24 @@ void menwiz::draw_val(_menu *mc){
         }
       break;  
     case MW_AUTO_INT:
-      for(i=1;i<row;i++){
+      for(i=2;i<row;i++){
         lcd->setCursor(0,i);
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
       sprintf(sbuf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
-      lcd->print(sbuf);
+//      lcd->print(sbuf);
+      SFORM(buf,sbuf,(int) col);
       break;      
     case MW_BOOLEAN:
-      for(i=1;i<row;i++){
+      for(i=2;i<row;i++){
         lcd->setCursor(0,i);
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-      sprintf(sbuf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
-      lcd->print(sbuf);
+//      sprintf(sbuf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
+//      lcd->print(sbuf);
+      SFORM(buf,VBOOL(mc->var.old)?"ON":"OFF",(int) col);
       break;      
     case MW_ACTION:
       for(i=1;i<row;i++){
@@ -287,6 +295,7 @@ void menwiz::addSplash(char *s, int lap){
   strcpy(sbuf,s);
   tm_splash=lap;
   fl_splash=true;
+  fl_splash_draw=false;
   }
 
 void menwiz::addUsrScreen(void f(), unsigned long t){
@@ -326,12 +335,13 @@ int menwiz::scanButtons(){
   //skip last button push and set current status to menu if usrscreen is active
   if(cur_mode==MW_MODE_USRSCREEN){
     b=btx.BTU.check()+btx.BTD.check()+btx.BTL.check()+btx.BTR.check()+btx.BTE.check()+btx.BTC.check();
-    if(b){
-      cur_mode=MW_MODE_MENU;
-      btx.last_button=MW_BTNULL;
-      }
-    else
-      return btx.last_button;
+    if(b!=0){ 
+       cur_mode=MW_MODE_MENU;
+       btx.last_button=MW_BTE;}
+    else{
+       btx.last_button=MW_BTNULL;
+       return btx.last_button;
+       }
     }
   else if(btx.BTU.check()==ON){
     if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    

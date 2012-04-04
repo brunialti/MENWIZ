@@ -65,6 +65,7 @@
 //functions 
 #define VFUNC(a)    (* a)
 
+
 typedef struct{
   int last_button;
   unsigned long tm_push;
@@ -140,12 +141,13 @@ public:
   byte     cur_mode;
   boolean  fl_splash;    
   boolean  fl_splash_draw;    
+  unsigned long tm_splash;      //splash screen duration  
   boolean  fl_usrscreen;    
   boolean  fl_usrscreen_draw;    
-  void     (*UsrScreen)();
-  unsigned long tm_start;       //start time (set when begin method is invocated)
-  unsigned long tm_splash;      //splash screen duration  
   unsigned long tm_usrscreen;   //lap time before usrscreen  
+  void     (*UsrScreen)();
+  boolean  fl_menu_draw;    
+  unsigned long tm_start;       //start time (set when begin method is invocated)
   byte     idx_m;
   _menu    m[MAX_MENUS];
   _menu*   cur_menu;
