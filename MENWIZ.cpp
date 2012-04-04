@@ -46,7 +46,7 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
   ERROR(0);   
    //INSTANTIATE NEW MENU VARIABLES
   if (idx_m!=MAX_MENUS){   
-    m[idx_m].type=t;         // ROOT| SUBMENU
+    m[idx_m].type=t;         // ROOT| SUBMENU| VAR
     SCREATE(m[idx_m].label,(char *)lab);      // STORE STRING BY REFERENCE, NOT BY VALUE !!!
     m[idx_m].cod=idx_m;      // unique menu id
     if (t==MW_ROOT){
@@ -120,6 +120,17 @@ void _menu::addVar(int t, boolean* v){
     }
   else{ERROR(110);}
 // ERROR    
+  }
+
+void  _menu::addVar(int t,void (*f)()){
+  ERROR(0);
+  if(type==MW_VAR){
+    var.type=(int)t;
+    var.action=f;
+    }
+  else{ERROR(110);}
+// ERROR    
+
   }
   
 void menwiz::begin(void *l,int c, int r){
@@ -203,7 +214,6 @@ void menwiz::draw_menu(_menu *mc){
   else{
     rstart=max(0,mc->cur_item-(row-2));
     rstop=min((mc->idx_o),(rstart+row));
-//    Serial.print(rstart);Serial.print(":");Serial.print(rstop);Serial.print(" row=");Serial.println(row);
     for (i=1,j=rstart;i<row;i++,j++){// for all remaining lcd rows
       if(j<rstop){
         op=(_option*)mc->o[j];
@@ -248,7 +258,6 @@ void menwiz::draw_val(_menu *mc){
         }
       lcd->setCursor(0,1);
       sprintf(sbuf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
-//      SFORM(buf,sbuf,(int) col);
       lcd->print(sbuf);
       break;      
     case MW_BOOLEAN:
@@ -258,8 +267,15 @@ void menwiz::draw_val(_menu *mc){
         }
       lcd->setCursor(0,1);
       sprintf(sbuf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
-//      SFORM(buf,sbuf,(int) col);
       lcd->print(sbuf);
+      break;      
+    case MW_ACTION:
+      for(i=1;i<row;i++){
+        lcd->setCursor(0,i);
+        SFORM(buf," ",(int) col);
+        }
+      lcd->setCursor(0,1);
+      SFORM(buf,"Confirm to fire...",(int) col);
       break;      
     default:{}
     }
@@ -367,6 +383,10 @@ int menwiz::scanButtons(){
       }
     else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
       VBOOL(cur_menu->var.val)=VBOOL(cur_menu->var.incr);
+      cur_menu=&m[cur_menu->parent];
+      }
+    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_ACTION)){        
+      cur_menu->var.action();	      
       cur_menu=&m[cur_menu->parent];
       }
     btx.last_button=MW_BTC;}

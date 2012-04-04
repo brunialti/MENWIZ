@@ -47,7 +47,7 @@
 #define MW_AUTO_INT    503  //INTEGER VALUE WITH INCREMENT STEP
 #define MW_AUTO_FLOAT  504  //not implemented yet
 #define MW_TEXT        505  //not implemented yet
-#define MW_ACTION      506  //not implemented yet
+#define MW_ACTION      506  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
 #define MW_EDIT_INT    507  //not implemented yet
 #define MW_EDIT_FLOAT  508  //not implemented yet
 
@@ -82,6 +82,7 @@ public:
   int      type;
   void*    val;
   void*    old;
+  void     (*action)();
   void*    lower;
   void*    upper;
   void*    incr;   
@@ -103,6 +104,7 @@ public:
   void     addVar(int, void*);
   void     addVar(int, void*, int, int, int);
   void     addVar(int, boolean *);
+  void     addVar(int, void (*f)());
   _option* addItem(int, char*);
   _var     var;
   byte     type;

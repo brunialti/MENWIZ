@@ -41,7 +41,7 @@ void setup(){
 
   //create the menu tree
   r=menu.addMenu(MW_ROOT,NULL,"MAIN MENU");           //create a root menu at first (required)
-    s1=menu.addMenu(MW_SUBMENU,r,"MESURE SUBMENU");   //add a submenu node to the root menu
+    s1=menu.addMenu(MW_SUBMENU,r,"MEASURE SUBMENU");   //add a submenu node to the root menu
       s2=menu.addMenu(MW_VAR,s1,"Choose T scale");//add a terminal node in the menu tree (that is "variable"); 
           s2->addVar(MW_LIST,&tp);                    //create the terminal node variable of type OPTION LIST and bind it to the app variable "tp"
           s2->addItem(MW_LIST,"Celsius");             //add an option to the OPTION LIST
@@ -49,7 +49,7 @@ void setup(){
           s2->addItem(MW_LIST,"Raw sensor data");     //add the third and last option to the OPTION LIST
       s2=menu.addMenu(MW_VAR,s1,"Set T1 trigger");
           s2->addVar(MW_AUTO_INT,&gp,10,100,2);
-      s2=menu.addMenu(MW_VAR,s1,"Enable warmer");
+      s2=menu.addMenu(MW_VAR,s1,"Enable heating");
           s2->addVar(MW_BOOLEAN,&wr);
 
   //(optional) create a splash screen (lap 6 seconds) with some usefull infos 
