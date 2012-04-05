@@ -1,5 +1,5 @@
 #######################################
-# MENU WIZARD
+# MENWIZ - MENU WIZARD
 #######################################
 
 #######################################
@@ -12,7 +12,7 @@ _option	KEYWORD1
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-navButtons	KEYWORD2
+navButtons KEYWORD2
 draw 	KEYWORD2
 freeRam KEYWORD2
 addMenu	KEYWORD2
@@ -26,7 +26,7 @@ getVer KEYWORD2
 #######################################
 MW_VAR	LITERAL1
 MW_ROOT	LITERAL1
-MW_SUBMENU	LITERAL1
+MW_SUBMENU LITERAL1
 MW_LIST	LITERAL1
 MW_BOOLEAN LITERAL1
 MW_AUTO_INT LITERAL1

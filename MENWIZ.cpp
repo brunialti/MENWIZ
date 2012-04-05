@@ -6,7 +6,7 @@
 #define ERROR(a)     MW_error=a
 
 char buf[21];
-char MW_ver[]={"0.1.2"};
+char MW_ver[]={"0.1.3"};
 byte MW_error;
 byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
@@ -264,7 +264,6 @@ void menwiz::draw_val(_menu *mc){
         }
       lcd->setCursor(0,1);
       sprintf(sbuf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
-//      lcd->print(sbuf);
       SFORM(buf,sbuf,(int) col);
       break;      
     case MW_BOOLEAN:
@@ -273,8 +272,6 @@ void menwiz::draw_val(_menu *mc){
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-//      sprintf(sbuf,"%s",VBOOL(mc->var.old)?"ON":"OFF");
-//      lcd->print(sbuf);
       SFORM(buf,VBOOL(mc->var.old)?"ON":"OFF",(int) col);
       break;      
     case MW_ACTION:
@@ -283,7 +280,7 @@ void menwiz::draw_val(_menu *mc){
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-      SFORM(buf,"Confirm to fire...",(int) col);
+      SFORM(buf,"Confirm to run...",(int) col);
       break;      
     default:{}
     }
@@ -415,7 +412,7 @@ const char *menwiz::getErrorMessage(){
     case 0:   return (const char *) "OK";
     case 100: return (const char *) "Too many item";
     case 110: return (const char *) "Unknown var type";
-    case 900: return (const char *) "Cannot allocate memory";
+    case 900: return (const char *) "Memory exhausted";
     default:  return (const char *) "Unknown error";
     }
   }

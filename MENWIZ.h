@@ -4,11 +4,19 @@
 //   165 punto centrale
 //   161 quadratino centrale
 
+#define I2C
+
 #ifndef MENWIZ_h
 #define MENWIZ_h
 
 #include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+
+#ifdef I2C
+  #include <LiquidCrystal_I2C.h>
+#else
+  #include <LiquidCrystal.h>
+#endif 
+
 #include <buttons.h>
 
 #if (ARDUINO >= 100)
@@ -134,7 +142,11 @@ public:
   const char *getErrorMessage();
   int      freeRam();
   //VARIABLES
+#ifdef I2C
   LiquidCrystal_I2C *lcd;
+#else
+  LiquidCrystal *lcd;
+#endif 
   char*    sbuf;             //lcd screen buffer (+ 1 for each line) 
   byte     row;
   byte     col;
