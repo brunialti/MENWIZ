@@ -33,6 +33,6 @@ Next steps are:
 . code inspection and cleaning
 
 The TEST_LIB zip file contains the library used to test the MENWIZ lib.
-It should be standard, neverthless should you have some problem, try using it
+I used what i felt to be "standard" libraries. Should you have some problem using yours actual libs, try using them
 
 (*)NOT TESTED YET: in MENWIZ.h if you comment the #define I2C statement, the lib *should* work with LiquidCrystal library thanks to conditional compiler directives
