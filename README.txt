@@ -4,7 +4,7 @@ I implemented a sketch to manage sensor parameters with LCDs without stopping th
 I abstracted the menu management and I wrote a new library called MENWIZ (menu wizard). 
 
 The pros are:
-- non blocking: that is the library does not take mu control while working, usefull if your sketch need to work while you are changing the settings
+- (near) asynchronous: that is the library does not take mu control while working, usefull if your sketch need to work while you are changing the settings
 - simple to use (few primitives and compact code)
 - user defined splash screen (optional): if you need to show something at startup. The time is user defined.
 - user defined callback default screen (optional) activated after a user defined elapsed time since last button push. The menu gently leave the screen to the user, untill any button is pushed.  
@@ -18,7 +18,7 @@ The cons are:
 - the library footprint is not very small. The provided example sketch dimension exceed 12k  
 
 Warnings
-- MENWIZ requires LiquidCrystal_I2C and Buttons libraries, enclosed with the package
+- MENWIZ requires LiquidCrystal_I2C (*) and Buttons libraries, enclosed with the package
 - I tested MENWIZ mainly with 4x20 I2C lcd screens. It *should* work also with other lcds (e.g 16x2)), but I did'nt tested it extensively
 - Menu labels require memory. Be carefull not to run out of  memory (the library provides a simple memory-check function: use it!)
 
@@ -34,3 +34,5 @@ Next steps are:
 
 The TEST_LIB zip file contains the library used to test the MENWIZ lib.
 It should be standard, neverthless should you have some problem, try using it
+
+(*)NOT TESTED YET: in MENWIZ.h if you comment the #define I2C statement, the lib *should* work with LiquidCrystal library thanks to conditional compiler directives
