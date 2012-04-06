@@ -6,7 +6,7 @@
 #define ERROR(a)     MW_error=a
 
 char buf[21];
-char MW_ver[]={"0.1.3"};
+char MW_ver[]={"0.1.4"};
 byte MW_error;
 byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
@@ -47,16 +47,17 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
    //INSTANTIATE NEW MENU VARIABLES
   if (idx_m!=MAX_MENUS){   
     m[idx_m].type=t;         // ROOT| SUBMENU| VAR
-    SCREATE(m[idx_m].label,(char *)lab);      // STORE STRING BY REFERENCE, NOT BY VALUE !!!
+    SCREATE(m[idx_m].label,(char *)lab);      // OPT:STORE STRING BY REFERENCE, NOT BY VALUE?
     m[idx_m].cod=idx_m;      // unique menu id
     if (t==MW_ROOT){
+      //IF ROOT, PARENT=ITSELF, SET ROOT POINTER, SET ROOT AS START MENU 
       m[idx_m].parent=idx_m;
       root=&m[idx_m];
       cur_menu=&m[idx_m];
       }
     else{
+      //IF NOT ROOT, ADD MENU TO THE PARENTS OPLIST 
       m[idx_m].parent=p->cod;
-      //ADD MENU TO THE PARENTS OPLIST (IF NOT ROOT)
       op=p->addItem(MW_SUBMENU,(char *)lab);
       op->sbm=idx_m;
       }
@@ -86,7 +87,9 @@ _option *_menu::addItem(int t,char *lab){
 void _menu::addVar(int t, void* v){
 
   ERROR(0);
-  if(type==MW_VAR){
+  if (t!=MW_LIST)
+    ERROR(120);
+  else if(type==MW_VAR){
     var.type=(int)t;
     var.val=v;
     cur_item=VBYTE(v);
@@ -98,7 +101,9 @@ void _menu::addVar(int t, void* v){
 void _menu::addVar(int t, void* v, int low, int up, int incr){
 
   ERROR(0);
-  if(type==MW_VAR){
+  if (t!=MW_AUTO_INT)
+    ERROR(120);
+  else if(type==MW_VAR){
     var.type=(int)t;
     var.val=v;
     var.lower=malloc(sizeof(int)); if(var.lower!=NULL) VINT(var.lower)=low; else {ERROR(900); return;}
@@ -113,7 +118,9 @@ void _menu::addVar(int t, void* v, int low, int up, int incr){
 void _menu::addVar(int t, boolean* v){
 
   ERROR(0);
-  if(type==MW_VAR){
+  if (t!=MW_BOOLEAN)
+    ERROR(120);
+  else if(type==MW_VAR){
     var.type=(int)t;
     var.val=(void *)v;
     var.old=malloc(sizeof(boolean));  if(var.old!=NULL) VBOOL(var.old)=VBOOL(var.val); else {ERROR(900); return;} 
@@ -124,7 +131,9 @@ void _menu::addVar(int t, boolean* v){
 
 void  _menu::addVar(int t,void (*f)()){
   ERROR(0);
-  if(type==MW_VAR){
+  if (t!=MW_ACTION)
+    ERROR(120);
+  else if(type==MW_VAR){
     var.type=(int)t;
     var.action=f;
     }
@@ -137,6 +146,11 @@ void menwiz::begin(void *l,int c, int r){
 
   ERROR(0);
   tm_start=millis();
+#ifdef I2C
+  lcd=(LiquidCrystal_I2C*)l; row=r; col=c;
+#else
+  lcd=(LiquidCrystal*)l; row=r; col=c;
+#endif 
   lcd=(LiquidCrystal_I2C*)l; row=r; col=c;
   lcd->init(); 
   lcd->setBacklight(HIGH);
@@ -162,7 +176,6 @@ void menwiz::draw(){
 
   // if defined splashscreen & not yet drawn & time window is ok, draw it  
   if((fl_splash==true) && (lap1<tm_splash)){
-//    Serial.print("SPLASH");
     cur_mode=MW_MODE_SPLASH;
     //draw only once
     if(fl_splash_draw==false){
@@ -172,14 +185,12 @@ void menwiz::draw(){
     }
   // if defined usrscreen & time since last button push > user defined time, draw it  
   else if((fl_usrscreen==true) && (lap2>tm_usrscreen)){
-//    Serial.print("USER");
     cur_mode=MW_MODE_USRSCREEN;
     fl_menu_draw=false;
     UsrScreen();
     }
   else{
   // if a button was pushed since last call, draw menu  
-//    Serial.print("MENU");
     cur_mode=MW_MODE_MENU;
     if((btx.last_button!=MW_BTNULL) || (!fl_menu_draw))
 	fl_menu_draw=true;
@@ -203,6 +214,8 @@ void menwiz::draw_splash(){
       buf[j]=sbuf[i];
       j++;
       }
+    if(k==row)
+      return;
     }
   }
   
@@ -405,16 +418,19 @@ int menwiz::scanButtons(){
   return (btx.last_button);
   }
 
-const char *menwiz::getErrorMessage(){
-
-  switch(MW_error)
-    {
-    case 0:   return (const char *) "OK";
-    case 100: return (const char *) "Too many item";
-    case 110: return (const char *) "Unknown var type";
-    case 900: return (const char *) "Memory exhausted";
-    default:  return (const char *) "Unknown error";
+int menwiz::getErrorMessage(boolean fl){
+  if (fl){
+    switch(MW_error)
+      {
+      case 0:   break; 
+      case 100: Serial.println(F("ERR 100-too many items"));break; 
+      case 110: Serial.println(F("ERR 110-MW_VAR menu type required"));break; 
+      case 120: Serial.println(F("ERR 120-Bad function 1st arg"));break; 
+      case 900: Serial.println(F("ERR 900-No memory available"));break; 
+      default:  Serial.println(F("ERR 000-Unknown err"));break; 
+      }
     }
+  return MW_error;
   }
 
 int menwiz::freeRam () {

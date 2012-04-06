@@ -115,8 +115,8 @@ public:
   void     addVar(int, boolean *);
   void     addVar(int, void (*f)());
   _option* addItem(int, char*);
-  _var     var;
   byte     type;
+  _var     var;
   boolean  fl_option;
   char*    label;
   byte     cod;
@@ -139,7 +139,7 @@ public:
   void     draw();
   void     navButtons(int,int,int,int,int,int);
   int      scanButtons();
-  const char *getErrorMessage();
+  int      getErrorMessage(boolean); //if arg=true, err message is displayed on the LCD, otherwise the function returns error code only
   int      freeRam();
   //VARIABLES
 #ifdef I2C
