@@ -32,6 +32,13 @@ Next steps are:
 - new data types
 . code inspection and cleaning
 
+The version number convention is as following:
+<version>.<subversion>.<build>
+  <version>: 0=not officially released, you have to check the latest available sources, as the lib could not work properly
+  <subversion>: new functions, modified function interfaces
+  <build>: bug fixing, minor internal changes
+
+
 The TEST_LIB zip file contains the library used to test the MENWIZ lib.
 I used what i felt to be "standard" libraries. Should you have some problem using yours actual libs, try using them
 
