@@ -78,7 +78,6 @@ _option *_menu::addItem(int t,char *lab){
     SCREATE(op->label,(char *)lab);
     o[idx_o]=(_option*)op;
     idx_o++;
-    return op;
     }
   else{ERROR(100);}
 // ERROR    
@@ -87,6 +86,9 @@ _option *_menu::addItem(int t,char *lab){
 void _menu::addVar(int t, void* v){
 
   ERROR(0);
+  if(type==MW_ROOT){     //patch to be verified
+    type=MW_VAR;        //patch to be verified
+    }	
   if (t!=MW_LIST)
     ERROR(120);
   else if(type==MW_VAR){
@@ -388,12 +390,13 @@ int menwiz::scanButtons(){
     cur_menu=&m[cur_menu->parent];
     btx.last_button=MW_BTE;}
   else if (btx.BTC.check()==ON){
+
     if((cur_menu->type==MW_SUBMENU)||(cur_menu->type==MW_ROOT)){
-      cur_menu=(_menu*)&m[oc->sbm];
+      cur_menu=&m[oc->sbm];
       if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST))        
 	cur_menu->cur_item=VINT(cur_menu->var.val);
       }
-    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST)){        
+    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST)){
       VINT(cur_menu->var.val)=(int)cur_menu->cur_item;
       cur_menu=&m[cur_menu->parent];
       }
