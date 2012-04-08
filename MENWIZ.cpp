@@ -6,7 +6,7 @@
 #define ERROR(a)     MW_error=a
 
 char buf[21];
-char MW_ver[]={"0.1.4"};
+char MW_ver[]={"0.1.5"};
 byte MW_error;
 byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
