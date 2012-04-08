@@ -167,7 +167,7 @@ public:
   _nav     btx;
 private:
   void     draw_menu(_menu *);
-  void     draw_val(_menu *);
+  void     draw_var(_menu *);
   void     draw_splash();
 protected:
 };

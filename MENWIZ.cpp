@@ -87,7 +87,7 @@ void _menu::addVar(int t, void* v){
 
   ERROR(0);
   if(type==MW_ROOT){     //patch to be verified
-    type=MW_VAR;        //patch to be verified
+    type=MW_VAR;         //patch to be verified
     }	
   if (t!=MW_LIST)
     ERROR(120);
@@ -230,7 +230,7 @@ void menwiz::draw_menu(_menu *mc){
   SFORM(buf,(char*)mc->label,(int) col);
 
   if (mc->type==MW_VAR){
-    draw_val(mc);
+    draw_var(mc);
     }
   else{
     rstart=max(0,mc->cur_item-(row-2));
@@ -250,7 +250,7 @@ void menwiz::draw_menu(_menu *mc){
     }    
   }
 
-void menwiz::draw_val(_menu *mc){
+void menwiz::draw_var(_menu *mc){
   int rstart,rstop,i,j;
   _option *op;
   
@@ -290,7 +290,7 @@ void menwiz::draw_val(_menu *mc){
       SFORM(buf,VBOOL(mc->var.old)?"ON":"OFF",(int) col);
       break;      
     case MW_ACTION:
-      for(i=1;i<row;i++){
+      for(i=2;i<row;i++){
         lcd->setCursor(0,i);
         SFORM(buf," ",(int) col);
         }
@@ -390,7 +390,6 @@ int menwiz::scanButtons(){
     cur_menu=&m[cur_menu->parent];
     btx.last_button=MW_BTE;}
   else if (btx.BTC.check()==ON){
-
     if((cur_menu->type==MW_SUBMENU)||(cur_menu->type==MW_ROOT)){
       cur_menu=&m[oc->sbm];
       if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST))        
