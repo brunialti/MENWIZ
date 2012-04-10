@@ -10,13 +10,7 @@
 #define MENWIZ_h
 
 #include <Wire.h>
-
-#ifdef I2C
-  #include <LiquidCrystal_I2C.h>
-#else
-  #include <LiquidCrystal.h>
-#endif 
-
+#include <LCD.h>
 #include <buttons.h>
 
 #if (ARDUINO >= 100)
@@ -31,9 +25,9 @@
 #define MW_VAR       102  //terminal node
 
 //OPTION TYPE  
-#define MW_SELECT    201  //multiple choice
-#define MW_INPUT     202  //input value
-#define MW_RANGE     203  //value range 
+//#define MW_SELECT    201  //multiple choice
+//#define MW_INPUT     202  //input value
+//#define MW_RANGE     203  //value range 
 
 //CUR MODE
 #define MW_MODE_SPLASH     10  
@@ -59,7 +53,7 @@
 #define MW_EDIT_INT    507  //not implemented yet
 #define MW_EDIT_FLOAT  508  //not implemented yet
 
-#define MAX_MENUS      15
+#define MAX_MENU      15
 #define MAX_OPTXMENU   5
 
 #define LAP_MENU       4000
@@ -72,7 +66,6 @@
 #define VFLOAT(a)   *(float*)a
 //functions 
 #define VFUNC(a)    (* a)
-
 
 typedef struct{
   int last_button;
@@ -100,7 +93,7 @@ public:
 class _option{
 public:
            _option();
-  byte     type;
+  int      type;
   char*    label;
   byte     sbm;  //submemu id if type=SUBMENU
 private:
@@ -110,12 +103,12 @@ protected:
 class _menu{
 public:
            _menu();
-  void     addVar(int, void*);
-  void     addVar(int, void*, int, int, int);
+  void     addVar(int, int*);
+  void     addVar(int, int*, int, int, int);
   void     addVar(int, boolean *);
   void     addVar(int, void (*f)());
   _option* addItem(int, char*);
-  byte     type;
+  int      type;
   _var     var;
   boolean  fl_option;
   char*    label;
@@ -142,11 +135,7 @@ public:
   int      getErrorMessage(boolean); //if arg=true, err message is displayed on the LCD, otherwise the function returns error code only
   int      freeRam();
   //VARIABLES
-#ifdef I2C
-  LiquidCrystal_I2C *lcd;
-#else
-  LiquidCrystal *lcd;
-#endif 
+  LCD *    lcd;
   char*    sbuf;             //lcd screen buffer (+ 1 for each line) 
   byte     row;
   byte     col;
@@ -161,7 +150,7 @@ public:
   boolean  fl_menu_draw;    
   unsigned long tm_start;       //start time (set when begin method is invocated)
   byte     idx_m;
-  _menu    m[MAX_MENUS];
+  _menu    m[MAX_MENU];
   _menu*   cur_menu;
   _menu*   root;
   _nav     btx;

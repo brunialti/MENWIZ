@@ -45,8 +45,8 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
 
   ERROR(0);   
    //INSTANTIATE NEW MENU VARIABLES
-  if (idx_m!=MAX_MENUS){   
-    m[idx_m].type=t;         // ROOT| SUBMENU| VAR
+  if (idx_m<MAX_MENU){   
+    m[idx_m].type=(int)t;         // ROOT| SUBMENU| VAR
     SCREATE(m[idx_m].label,(char *)lab);      // OPT:STORE STRING BY REFERENCE, NOT BY VALUE?
     m[idx_m].cod=idx_m;      // unique menu id
     if (t==MW_ROOT){
@@ -58,7 +58,8 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
     else{
       //IF NOT ROOT, ADD MENU TO THE PARENTS OPLIST 
       m[idx_m].parent=p->cod;
-      op=p->addItem(MW_SUBMENU,(char *)lab);
+//      op=p->addItem(MW_SUBMENU,(char *)lab);
+      op=p->addItem(t,(char *)lab);
       op->sbm=idx_m;
       }
     idx_m++;
@@ -72,7 +73,7 @@ _option *_menu::addItem(int t,char *lab){
   static _option *op;
 
   ERROR(0);
-  if (idx_o!=MAX_OPTXMENU){
+  if (idx_o<MAX_OPTXMENU){
     op=(_option *) malloc(sizeof(_option));
     op->type=t;
     SCREATE(op->label,(char *)lab);
@@ -83,11 +84,11 @@ _option *_menu::addItem(int t,char *lab){
 // ERROR    
    } 
 
-void _menu::addVar(int t, void* v){
+void _menu::addVar(int t, int* v){
 
   ERROR(0);
   if(type==MW_ROOT){     //patch to be verified
-    type=MW_VAR;         //patch to be verified
+    type=(int)MW_VAR;         //patch to be verified
     }	
   if (t!=MW_LIST)
     ERROR(120);
@@ -100,7 +101,7 @@ void _menu::addVar(int t, void* v){
 // ERROR    
   }
   
-void _menu::addVar(int t, void* v, int low, int up, int incr){
+void _menu::addVar(int t, int* v, int low, int up, int incr){
 
   ERROR(0);
   if (t!=MW_AUTO_INT)
@@ -124,7 +125,7 @@ void _menu::addVar(int t, boolean* v){
     ERROR(120);
   else if(type==MW_VAR){
     var.type=(int)t;
-    var.val=(void *)v;
+    var.val=v;
     var.old=malloc(sizeof(boolean));  if(var.old!=NULL) VBOOL(var.old)=VBOOL(var.val); else {ERROR(900); return;} 
     }
   else{ERROR(110);}
@@ -132,6 +133,7 @@ void _menu::addVar(int t, boolean* v){
   }
 
 void  _menu::addVar(int t,void (*f)()){
+
   ERROR(0);
   if (t!=MW_ACTION)
     ERROR(120);
@@ -141,22 +143,17 @@ void  _menu::addVar(int t,void (*f)()){
     }
   else{ERROR(110);}
 // ERROR    
-
   }
   
 void menwiz::begin(void *l,int c, int r){
 
   ERROR(0);
   tm_start=millis();
-#ifdef I2C
-  lcd=(LiquidCrystal_I2C*)l; row=r; col=c;
-#else
-  lcd=(LiquidCrystal*)l; row=r; col=c;
-#endif 
-  lcd=(LiquidCrystal_I2C*)l; row=r; col=c;
-  lcd->init(); 
+  row=r;
+  col=c;
+  lcd=(LCD*)l; 
+  lcd->begin(c,r);  // Size of the LCD
   lcd->setBacklight(HIGH);
-  lcd->setCursor(0, 0);
   lcd->noCursor();
   lcd->createChar(0,c0);
   sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
@@ -195,8 +192,8 @@ void menwiz::draw(){
   // if a button was pushed since last call, draw menu  
     cur_mode=MW_MODE_MENU;
     if((btx.last_button!=MW_BTNULL) || (!fl_menu_draw))
-	fl_menu_draw=true;
-	draw_menu(cur_menu);
+      fl_menu_draw=true;
+      draw_menu(cur_menu);
     }
   }
 
@@ -255,7 +252,7 @@ void menwiz::draw_var(_menu *mc){
   _option *op;
   
   ERROR(0);
-  switch ((int)mc->var.type){
+  switch ((mc->var.type)){
     case MW_LIST:
       rstart=max(0,mc->cur_item-(row-2));
       rstop=min((mc->idx_o),rstart+(row));
