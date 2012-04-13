@@ -18,7 +18,7 @@
 // The library allows the users to define callbacks able to overload internal
 // functions (i.e. navigation device management) or to be executed inside a menu.
 // It is possible to define also splash screens and a default user screen to be
-// activated after a time interval since the last interactio,
+// activated after a time interval since the last interaction
 //
 // @author R. Brunialti - roberto_brunialti@tiscali.it
 // ---------------------------------------------------------------------------

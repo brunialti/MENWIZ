@@ -1,4 +1,4 @@
-Ver 0.3.0 CHANGES
+Ver 0.3.0 CHANGES 
 
 *********************************
 *** CHANGES TO EXISTING FUNCTIONS
