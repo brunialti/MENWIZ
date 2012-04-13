@@ -1,20 +1,44 @@
-//==========.cpp
+// ---------------------------------------------------------------------------
+// Created by Roberto Brunialti on 20/04/12.
+// Copyright 2012 - Under creative commons license 3.0:
+//        Attribution-ShareAlike CC BY-SA
+//
+// This software is furnished "as is", without technical support, and with no 
+// warranty, express or implied, as to its usefulness for any purpose.
+//
+// Thread Safe: No
+// Extendable: Yes
+//
+// @file MENWIZ.cpp
+// This file implements a basic menu management library in the Arduino SDK
+// 
+// @brief 
+// This is a menu management library. The library allows user to create
+// an intire menu tree with relatively few lines of code.
+// The library allows the users to define callbacks able to overload internal
+// functions (i.e. navigation device management) or to be executed inside a menu.
+// It is possible to define also splash screens and a default user screen to be
+// activated after a time interval since the last interactio,
+//
+// @author R. Brunialti - roberto_brunialti@tiscali.it
+// ---------------------------------------------------------------------------
 #include "MENWIZ.h"
 
 #define SCREATE(p,s) p=(char *)malloc(strlen(s)+1); strcpy(p,s)
 #define SFORM(b,s,l) memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=NULL; lcd->print(b)
 #define ERROR(a)     MW_error=a
 
-char buf[21];
-char MW_ver[]={"0.1.5"};
+char *buf;
+char MW_ver[]={"0.3.0"};
 byte MW_error;
 byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
 menwiz::menwiz(){
   fl_splash=false;
-  fl_usrscreen=false;
+  usrScreen.fl=false;
+  usrNav.fl=false;
   fl_splash_draw=false;
-  fl_usrscreen_draw=false;
+  fl_usrScreen_draw=false;
   btx.last_button=MW_BTU;
   idx_m=0;
   row=0;
@@ -28,7 +52,6 @@ _menu::_menu(){
   cur_item=0;
   label=NULL;
   parent=NULL;
-  fl_option=false;
 }
 
 _option::_option(){
@@ -36,8 +59,12 @@ _option::_option(){
 }
 
 _var::_var(){
-  type=0;
   val=NULL;
+  old=NULL;
+  lower=NULL;
+  upper=NULL;
+  incr=NULL;   
+  type=0;
 }
 
 _menu * menwiz::addMenu(int t,_menu * p, char *lab){
@@ -58,7 +85,6 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
     else{
       //IF NOT ROOT, ADD MENU TO THE PARENTS OPLIST 
       m[idx_m].parent=p->cod;
-//      op=p->addItem(MW_SUBMENU,(char *)lab);
       op=p->addItem(t,(char *)lab);
       op->sbm=idx_m;
       }
@@ -80,7 +106,7 @@ _option *_menu::addItem(int t,char *lab){
     o[idx_o]=(_option*)op;
     idx_o++;
     }
-  else{ERROR(100);}
+  else{ERROR(105);}
 // ERROR    
    } 
 
@@ -88,7 +114,7 @@ void _menu::addVar(int t, int* v){
 
   ERROR(0);
   if(type==MW_ROOT){     //patch to be verified
-    type=(int)MW_VAR;         //patch to be verified
+    type=(int)MW_VAR;    //patch to be verified
     }	
   if (t!=MW_LIST)
     ERROR(120);
@@ -144,7 +170,12 @@ void  _menu::addVar(int t,void (*f)()){
   else{ERROR(110);}
 // ERROR    
   }
-  
+
+void menwiz::addUsrNav(int (*f)()){
+  usrNav.fl=true;
+  usrNav.fi=f;
+  }
+
 void menwiz::begin(void *l,int c, int r){
 
   ERROR(0);
@@ -157,7 +188,9 @@ void menwiz::begin(void *l,int c, int r){
   lcd->noCursor();
   lcd->createChar(0,c0);
   sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
-  fl_menu_draw=false;
+  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
+  fl_usrScreen_draw=false;
+  fl_splash_draw=false;
   }
 
 char* menwiz::getVer(){
@@ -167,9 +200,21 @@ char* menwiz::getVer(){
   }
 
 void menwiz::draw(){
-  
+  int ret;
+
   ERROR(0);
-  scanButtons();
+  // get nav choice
+  ret= usrNav.fl?ret=usrNav.fi():scanNavButtons();    	//internal method or user defined callback?
+  // if usrscreen is active, skip last button and switch to MENU mode
+  if((cur_mode==MW_MODE_USRSCREEN)&&(ret!=MW_BTNULL)){
+    cur_mode=MW_MODE_MENU;
+    btx.last_button=MW_BTNULL;
+    btx.tm_push=millis();
+    } 
+  // else run the action associated to selected button
+  else
+    ret=actNavButtons(ret);
+  
   int long lap1=(millis()-tm_start);
   int long lap2=(millis()-btx.tm_push);
 
@@ -178,39 +223,40 @@ void menwiz::draw(){
     cur_mode=MW_MODE_SPLASH;
     //draw only once
     if(fl_splash_draw==false){
-      draw_splash();
+      drawUsrScreen(sbuf);
       fl_splash_draw=true;
       }
     }
   // if defined usrscreen & time since last button push > user defined time, draw it  
-  else if((fl_usrscreen==true) && (lap2>tm_usrscreen)){
+  else if((usrScreen.fl) && (lap2>tm_usrScreen)){
     cur_mode=MW_MODE_USRSCREEN;
-    fl_menu_draw=false;
-    UsrScreen();
+    fl_usrScreen_draw=false;
+    usrScreen.fv();
     }
   else{
   // if a button was pushed since last call, draw menu  
     cur_mode=MW_MODE_MENU;
-    if((btx.last_button!=MW_BTNULL) || (!fl_menu_draw))
-      fl_menu_draw=true;
-      draw_menu(cur_menu);
+    if((btx.last_button!=MW_BTNULL) || (!fl_usrScreen_draw))
+      fl_usrScreen_draw=true;
+      drawMenu(cur_menu);
     }
   }
 
-void menwiz::draw_splash(){
-  int i,j,k;
+void menwiz::drawUsrScreen(char *scr){
+  int i,j,k,z;
 
   ERROR(0);
-  for (int i=0,j=0,k=0;i<(strlen(sbuf)+1);i++){
-    if((sbuf[i]=='#')||(sbuf[i]==0)){
-      buf[j]=0;
+  for (int i=0,j=0,k=0;(k<row)&&(i<(strlen(scr)+1));i++){
+    if((scr[i]==MW_EOL_CHAR)||(scr[i]==0)){
+      memset(&buf[min(j,col)],' ',col-j);
+      buf[col]=0;
       lcd->setCursor(0,k);
       lcd->print(buf);
       j=0;
       k++;
       }
     else{
-      buf[j]=sbuf[i];
+      buf[j]=scr[i];
       j++;
       }
     if(k==row)
@@ -218,7 +264,7 @@ void menwiz::draw_splash(){
     }
   }
   
-void menwiz::draw_menu(_menu *mc){
+void menwiz::drawMenu(_menu *mc){
   int rstart,rstop,i,j;
   _option *op;
 
@@ -227,7 +273,7 @@ void menwiz::draw_menu(_menu *mc){
   SFORM(buf,(char*)mc->label,(int) col);
 
   if (mc->type==MW_VAR){
-    draw_var(mc);
+    drawVar(mc);
     }
   else{
     rstart=max(0,mc->cur_item-(row-2));
@@ -247,7 +293,7 @@ void menwiz::draw_menu(_menu *mc){
     }    
   }
 
-void menwiz::draw_var(_menu *mc){
+void menwiz::drawVar(_menu *mc){
   int rstart,rstop,i,j;
   _option *op;
   
@@ -292,7 +338,7 @@ void menwiz::draw_var(_menu *mc){
         SFORM(buf," ",(int) col);
         }
       lcd->setCursor(0,1);
-      SFORM(buf,"Confirm to run...",(int) col);
+      SFORM(buf,"[Confirm] to run.",(int) col);
       break;      
     default:{}
     }
@@ -310,9 +356,9 @@ void menwiz::addSplash(char *s, int lap){
 void menwiz::addUsrScreen(void f(), unsigned long t){
 
   ERROR(0);
-  UsrScreen=f;
-  fl_usrscreen=true;
-  tm_usrscreen=t;
+  usrScreen.fv=f;
+  usrScreen.fl=true;
+  tm_usrScreen=t;
   }
 
 void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
@@ -334,87 +380,104 @@ void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
   btx.BTC.check(); 
   }
 
-int menwiz::scanButtons(){ 
-  _option* oc;
-  int b=0;
-  
+int menwiz::scanNavButtons(){ 
+  if(btx.BTU.check()==ON){
+    return MW_BTU;}
+  else if (btx.BTD.check()==ON){
+    return MW_BTD;}
+  else if (btx.BTL.check()==ON){
+    return MW_BTL;}
+  else if (btx.BTR.check()==ON){
+    return MW_BTR;}
+  else if (btx.BTE.check()==ON){
+    return MW_BTE;}
+  else if (btx.BTC.check()==ON){
+    return MW_BTC;}
+  else
+    return MW_BTNULL;
+  }
+
+int menwiz::actNavButtons(int button){  
   ERROR(0);
+  if (button==MW_BTNULL) 
+    return(button);
+  else{
+    btx.last_button=button;
+    btx.tm_push=millis();
+    switch(button){
+      case MW_BTU: actBTU();  break; 
+      case MW_BTD: actBTD();  break; 
+      case MW_BTL: actBTL();  break; 
+      case MW_BTR: actBTR();  break; 
+      case MW_BTE: actBTE();  break; 
+      case MW_BTC: actBTC();  break; 
+      }
+    }
+  }
+
+void menwiz::actBTU(){ 
+  if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
+    cur_menu->cur_item=(cur_menu->cur_item-1)<0?(cur_menu->idx_o-1):cur_menu->cur_item-1;
+  }
+
+void menwiz::actBTD(){ 
+  if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
+    cur_menu->cur_item=(cur_menu->cur_item+1)%(cur_menu->idx_o);
+  }
+
+void menwiz::actBTL(){ 
+  if(cur_menu->var.type==MW_AUTO_INT){
+    VINT(cur_menu->var.old)=max((VINT(cur_menu->var.old)-VINT(cur_menu->var.incr)),VINT(cur_menu->var.lower));
+    }    
+  else if(cur_menu->var.type==MW_BOOLEAN){
+    VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
+    }    
+  }
+
+void menwiz::actBTR(){ 
+  if(cur_menu->var.type==MW_AUTO_INT){
+    VINT(cur_menu->var.old)=min((VINT(cur_menu->var.old)+VINT(cur_menu->var.incr)),VINT(cur_menu->var.upper));
+    }    
+  else if(cur_menu->var.type==MW_BOOLEAN){
+    VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
+    }    
+  }
+
+void menwiz::actBTE(){ 
+  if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
+    VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
+    }
+  if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
+    VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
+    }
+  cur_menu=&m[cur_menu->parent];
+  }
+
+void menwiz::actBTC(){ 
+  _option* oc;
   oc=(_option*)cur_menu->o[cur_menu->cur_item];
 
-  //skip last button push and set current status to menu if usrscreen is active
-  if(cur_mode==MW_MODE_USRSCREEN){
-    b=btx.BTU.check()+btx.BTD.check()+btx.BTL.check()+btx.BTR.check()+btx.BTE.check()+btx.BTC.check();
-    if(b!=0){ 
-       cur_mode=MW_MODE_MENU;
-       btx.last_button=MW_BTE;}
-    else{
-       btx.last_button=MW_BTNULL;
-       return btx.last_button;
-       }
-    }
-  else if(btx.BTU.check()==ON){
-    if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
-      cur_menu->cur_item=(cur_menu->cur_item-1)<0?(cur_menu->idx_o-1):cur_menu->cur_item-1;
-//      cur_menu->cur_item=(cur_menu->cur_item-1)%(cur_menu->idx_o);
-    btx.last_button=MW_BTU;}
-  else if (btx.BTD.check()==ON){
-    if((cur_menu->type!=MW_VAR)||(cur_menu->var.type==MW_LIST))    
-      cur_menu->cur_item=(cur_menu->cur_item+1)%(cur_menu->idx_o);
-    btx.last_button=MW_BTD;}
-  else if (btx.BTL.check()==ON){
-    if(cur_menu->var.type==MW_AUTO_INT){
-      VINT(cur_menu->var.old)=max((VINT(cur_menu->var.old)-VINT(cur_menu->var.incr)),VINT(cur_menu->var.lower));
-      }    
-    else if(cur_menu->var.type==MW_BOOLEAN){
-      VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
-      }    
-    btx.last_button=MW_BTL;}
-  else if (btx.BTR.check()==ON){
-    if(cur_menu->var.type==MW_AUTO_INT){
-      VINT(cur_menu->var.old)=min((VINT(cur_menu->var.old)+VINT(cur_menu->var.incr)),VINT(cur_menu->var.upper));
-      }    
-    else if(cur_menu->var.type==MW_BOOLEAN){
-      VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
-      }    
-    btx.last_button=MW_BTR;}
-  else if (btx.BTE.check()==ON){
-    if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
-      VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
+  if((cur_menu->type==MW_SUBMENU)||(cur_menu->type==MW_ROOT)){
+    cur_menu=&m[oc->sbm];
+    if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST))        
+      cur_menu->cur_item=VINT(cur_menu->var.val);
       }
-    if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
-      VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
-      }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST)){
+    VINT(cur_menu->var.val)=(int)cur_menu->cur_item;
     cur_menu=&m[cur_menu->parent];
-    btx.last_button=MW_BTE;}
-  else if (btx.BTC.check()==ON){
-    if((cur_menu->type==MW_SUBMENU)||(cur_menu->type==MW_ROOT)){
-      cur_menu=&m[oc->sbm];
-      if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST))        
-	cur_menu->cur_item=VINT(cur_menu->var.val);
-      }
-    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_LIST)){
-      VINT(cur_menu->var.val)=(int)cur_menu->cur_item;
-      cur_menu=&m[cur_menu->parent];
-      }
-    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
-      VINT(cur_menu->var.val)=VINT(cur_menu->var.old);
-      cur_menu=&m[cur_menu->parent];
-      }
-    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
-      VBOOL(cur_menu->var.val)=VBOOL(cur_menu->var.incr);
-      cur_menu=&m[cur_menu->parent];
-      }
-    else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_ACTION)){        
-      cur_menu->var.action();	      
-      cur_menu=&m[cur_menu->parent];
-      }
-    btx.last_button=MW_BTC;}
-  else{
-    btx.last_button=MW_BTNULL;
-    return (btx.last_button);
     }
-  btx.tm_push=millis();
-  return (btx.last_button);
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
+    VINT(cur_menu->var.val)=VINT(cur_menu->var.old);
+    cur_menu=&m[cur_menu->parent];
+    }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
+    VBOOL(cur_menu->var.val)=VBOOL(cur_menu->var.incr);
+    cur_menu=&m[cur_menu->parent];
+    }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_ACTION)){        
+    cur_menu->var.action();	      
+    cur_menu=&m[cur_menu->parent];
+    }
   }
 
 int menwiz::getErrorMessage(boolean fl){
@@ -422,11 +485,12 @@ int menwiz::getErrorMessage(boolean fl){
     switch(MW_error)
       {
       case 0:   break; 
-      case 100: Serial.println(F("ERR 100-too many items"));break; 
-      case 110: Serial.println(F("ERR 110-MW_VAR menu type required"));break; 
-      case 120: Serial.println(F("ERR 120-Bad function 1st arg"));break; 
-      case 900: Serial.println(F("ERR 900-No memory available"));break; 
-      default:  Serial.println(F("ERR 000-Unknown err"));break; 
+      case 100: Serial.println(F("ERR.100-Too many _menu items"));break; 
+      case 105: Serial.println(F("ERR.105-Too many _option items"));break; 
+      case 110: Serial.println(F("ERR.110-MW_VAR menu type required"));break; 
+      case 120: Serial.println(F("ERR.120-Bad 1st arg"));break; 
+      case 900: Serial.println(F("ERR.900-Out of memory"));break; 
+      default:  Serial.println(F("ERR.000-Unknown err"));break; 
       }
     }
   return MW_error;
@@ -437,3 +501,23 @@ int menwiz::freeRam () {
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

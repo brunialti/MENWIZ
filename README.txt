@@ -1,7 +1,8 @@
-MENWIZ YET ANOTHER CHARACTER LCD MENU WIZARD LIBRARY
->>>>STILL IN BETA <<<<
+MENWIZ: YET ANOTHER CHARACTER LCD MENU WIZARD LIBRARY
 
-This library implement menu simple creation.
+
+This library implement menu creation with simple coding.
+
 The pros are:
 - (near) asynchronous: that is the library does not take mu control while working, usefull if your sketch need to work while you are changing the settings
 - simple to use (few primitives and compact code)
@@ -9,11 +10,10 @@ The pros are:
 - user defined callback default screen (optional) activated after a user defined elapsed time since last button push. The menu gently leave the screen to the user, untill any button is pushed.  
 - you can run a user-defined action (callback routine) from inside the menu
 - user defined variables binding: when you set a value inside a menu, the value is changed also in the binded variable available to the sketch code
+- the user can overload the built-in  "6 buttons" navigation mode, implementing its own navigation callback (TO BE FULLY TESTED) 
 
 The cons are:
-- still in beta: do not look for clean code and full featured library
 - few data types available for parameters (option lists, integer, boolean, actions), more are to be implemented
-- at this stage only a simple "6 buttons" navigation mode is implemented; a generic user defined navigation callback soon available 
 - the library footprint is not very small. The provided example sketch dimension exceed 12k  
 
 Warnings
@@ -22,7 +22,7 @@ Warnings
 - the examples are done for 20x4 I2C LCD. other interfaces and screen dimensions can be used accordingly with New LiquidCrystal interface (changing mode/interface does not affect library code, but only sketch code) 
 
 The library is avalable at:
-gethub.com/brunialti/MENWIZ
+gethub.com/brunialti/MENWIZ.git
 
 Any feed back is welcome. Should you be interested I can mantain and expand.
 Keep in mind that I want to keep it simple.

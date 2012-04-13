@@ -21,6 +21,8 @@ addItem	KEYWORD2
 addSplash KEYWORD2
 addUsrScreen KEYWORD2
 getVer KEYWORD2
+addUsrNav KEYWORD2
+drawUsrScreen KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
