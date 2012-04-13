@@ -1,6 +1,5 @@
 MENWIZ: YET ANOTHER CHARACTER LCD MENU WIZARD LIBRARY
 
-
 This library implement menu creation with simple coding.
 
 The pros are:
@@ -21,7 +20,7 @@ Warnings
 - Menu labels require memory. Be carefull not to run out of  memory (the library provides a simple memory-check function: use it!)
 - the examples are done for 20x4 I2C LCD. other interfaces and screen dimensions can be used accordingly with New LiquidCrystal interface (changing mode/interface does not affect library code, but only sketch code) 
 
-The library is avalable at:
+The MENWIZ library is avalable at:
 gethub.com/brunialti/MENWIZ.git
 
 Any feed back is welcome. Should you be interested I can mantain and expand.
