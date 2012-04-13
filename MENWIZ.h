@@ -13,10 +13,10 @@
 // This file implements a basic menu management library in the Arduino SDK
 // 
 // @brief 
-// This is an of a manu management library. The library allows user to create
+// This is a menu management library. The library allows user to create
 // an intire menu tree with relatively few lines of code.
 // The library allows the users to define callbacks able to overload internal
-// functions (as navigation device management) or to be executed inside a menu.
+// functions (i.e. navigation device management) or to be executed inside a menu.
 // It is possible to define also splash screens and a default user screen to be
 // activated after a time interval since the last interactio,
 //
