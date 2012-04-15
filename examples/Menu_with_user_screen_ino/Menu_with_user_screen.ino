@@ -1,3 +1,5 @@
+de:
+
 //MENWIZ ESAMPLE
 #include <Wire.h>
 //INSERT ALL THE FOLLOWING 4 INCLUDES AFTER INCLUDING WIRE LIB 
@@ -43,18 +45,18 @@ void setup(){
       s2=menu.addMenu(MW_VAR,s1,"Choose T scale");    //add a terminal node in the menu tree (that is "variable"); 
           s2->addVar(MW_LIST,&tp);                    //create the terminal node variable of type OPTION LIST and bind it to the app variable "tp"
           menu.getErrorMessage(true);
-          s2->addItem(MW_LIST,"Celsius");             //add an option to the OPTION LIST
-          s2->addItem(MW_LIST,"Farenheit");           //add an other option to the OPTION LIST
-          s2->addItem(MW_LIST,"Raw sensor data");     //add the third and last option to the OPTION LIST
+          s2->addItem(MW_LIST,"C°");             //add an option to the OPTION LIST
+          s2->addItem(MW_LIST,"F°");           //add an other option to the OPTION LIST
+          s2->addItem(MW_LIST,"Raw data");     //add the third and last option to the OPTION LIST
       s2=menu.addMenu(MW_VAR,s1,"Set T1 trigger");
           s2->addVar(MW_AUTO_INT,&gp,10,100,2);
       s2=menu.addMenu(MW_VAR,s1,"Enable heater");
           s2->addVar(MW_BOOLEAN,&wr);
 
-  //(optional) create a splash screen (lap 6 seconds) with some usefull infos 
-  //the character # marks end of line (WARNING: this could be changed in the next releases)
+  //(optional) create a splash screen with some usefull infos 
+  //the character \n marks end of line 
   //(tip): use preallocated internal menu.sbuf buffer to save memory space!
-  sprintf(menu.sbuf,"MENWIZ TEST V %s#Free memory   : %d#Menu mem alloc: %d#Splash lap sec: %d",menu.getVer(),menu.freeRam(),mem-menu.freeRam(),5);
+  sprintf(menu.sbuf,"MENWIZ TEST V %s\n.Free mem. :%d\n.Used mem  :%d\n.Lap secs  :%d",menu.getVer(),menu.freeRam(),mem-menu.freeRam(),5);
   menu.addSplash((char *) menu.sbuf, 5000);
  
   //declare navigation buttons (required)
@@ -62,27 +64,18 @@ void setup(){
   menu.navButtons(UP_BOTTON_PIN,DOWN_BOTTON_PIN,LEFT_BOTTON_PIN,RIGHT_BOTTON_PIN,ESCAPE_BOTTON_PIN,CONFIRM_BOTTON_PIN);
 
   //create a user define screen callback to activate after 7 secs since last button push 
-  menu.addUsrScreen(msc,10000);
+  menu.addUsrScreen(msc,7000);
   }
 
 void loop(){
-  // NAVIGATION MANAGEMENT & DRAWING ON LCD. NOT BLOCKING
+  // NAVIGATION & DRAWING MANAGEMENT
   menu.draw(); 
   //PUT APPLICATION CODE HERE
   }
 
 // user defined default screen
 void msc(){
-  char s[21];
-  lcd.setCursor(0,0);
-  lcd.print("Test user screen    ");
-  lcd.setCursor(0,1);
-  lcd.print("                    ");
-  lcd.setCursor(0,1);
-  lcd.print(millis()/1000);
-  lcd.setCursor(0,2);
-  lcd.print("                    ");
-  lcd.setCursor(0,3);
-  lcd.print("                    ");
+  sprintf(menu.sbuf,"User screen\nUptime (s): %ld\nFree mem  : %d\n\n",millis()/1000,(int)menu.freeRam());
+  menu.drawUsrScreen(menu.sbuf);
   }
 
