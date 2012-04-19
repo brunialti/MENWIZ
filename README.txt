@@ -11,10 +11,6 @@ The pros are:
 - user defined variables binding: when you set a value inside a menu, the value is changed also in the binded variable available to the sketch code
 - the user can overload the built-in  "6 buttons" navigation mode, implementing its own navigation callback (TO BE FULLY TESTED) 
 
-The cons are:
-- few data types available for parameters (option lists, integer, boolean, actions), more are to be implemented
-- the library footprint is not very small. The provided example sketch dimension exceed 12k  
-
 Warnings
 - MENWIZ requires New LiquidCrystal (*) and Buttons libraries, enclosed with the package. The New LiquidCrystal allows to use 4 wires, 8 wires, I2C, serial and other LCDs. The use of New LiquidCrystal is beyond this introduction
 - Menu labels require memory. Be carefull not to run out of  memory (the library provides a simple memory-check function: use it!)
@@ -28,7 +24,7 @@ Keep in mind that I want to keep it simple.
 
 Next steps are:
 - new data types
-. code inspection and cleaning
+- code inspection and cleaning
 
 The version number convention is as following:
 <version>.<subversion>.<build>

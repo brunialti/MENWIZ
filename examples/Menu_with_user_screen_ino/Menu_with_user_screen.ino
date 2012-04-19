@@ -3,7 +3,7 @@
 //INSERT ALL THE FOLLOWING 4 INCLUDES AFTER INCLUDING WIRE LIB 
 #include <LCD.h>
 #include <LiquidCrystal_I2C.h>
-#include <buttons.h>
+#include <buttons.h> 
 #include <MENWIZ.h>
 
 // DEFINE ARDUINO PINS FOR THE NAVIGATION BUTTONS

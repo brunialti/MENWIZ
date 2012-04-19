@@ -1,7 +1,7 @@
 *********************************
 Ver 0.4.0 CHANGES ***************
 *********************************
-
+ 
 *** CHANGES TO EXISTING FUNCTIONS
 
 addVar(int,float *,float,float,float)

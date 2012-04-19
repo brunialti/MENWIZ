@@ -8,7 +8,7 @@
 //
 // Thread Safe: No
 // Extendable: Yes
-//
+// 
 // @file MENWIZ.cpp
 // This file implements a basic menu management library in the Arduino SDK
 // 
@@ -35,7 +35,6 @@ int MW_FLOAT_DEC=1;
 char buf[81];
 static const char MW_ver[]={"0.3.0"};
 static const char MW_FMT_VARINT[]={"%d [%d] %d"};
-//static const char MW_FMT_VARUBYTE[]={"%d [%d] %d"};
 static const char MW_STR_CONFIRM[]={"[C] to run."};
 static const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 byte MW_error;

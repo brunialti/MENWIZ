@@ -6,7 +6,7 @@
 #######################################
 menwiz  KEYWORD1
 _menu	KEYWORD1
-_var	KEYWORD1
+_var	KEYWORD1 
 _option	KEYWORD1
 #######################################
 # Methods and Functions (KEYWORD2)

@@ -1,7 +1,7 @@
 //MENWIZ GOLF ROBOT EXAMPLE
 // choose mode, set distance to fire (yards for all modee except feets for putt) and fire! 
 //REMEMBER TO OPEN THE SERIAL TERMINAL ...
-
+ 
 #include <Wire.h>
 //INSERT ALL THE FOLLOWING 4 INCLUDES AFTER INCLUDING WIRE LIB 
 #include <LCD.h>

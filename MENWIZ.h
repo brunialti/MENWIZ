@@ -8,7 +8,7 @@
 //
 // Thread Safe: No
 // Extendable: Yes
-//
+// 
 // @file MENWIZ.h
 // This file implements a basic menu management library in the Arduino SDK
 // 
@@ -44,9 +44,9 @@
 
 // NODE TYPES 
 // ---------------------------------------------------------------------------
-#define MW_ROOT      10  //root menu
-#define MW_SUBMENU   11  //submenu
-#define MW_VAR       12  //terminal node
+#define MW_ROOT        10  //root menu
+#define MW_SUBMENU     11  //submenu
+#define MW_VAR         12  //terminal node
 
 // CUR MODE
 // ---------------------------------------------------------------------------
@@ -56,13 +56,13 @@
 
 // BUTTON CODES
 // ---------------------------------------------------------------------------
-#define MW_BTNULL    30   //NOBUTTON
-#define MW_BTU       31   //UP
-#define MW_BTD       32   //DOWN
-#define MW_BTL       33   //RIGTH
-#define MW_BTR       34   //LEFT
-#define MW_BTE       35   //ESCAPE
-#define MW_BTC       36   //CONFIRM
+#define MW_BTNULL      30   //NOBUTTON
+#define MW_BTU         31   //UP
+#define MW_BTD         32   //DOWN
+#define MW_BTL         33   //RIGTH
+#define MW_BTR         34   //LEFT
+#define MW_BTE         35   //ESCAPE
+#define MW_BTC         36   //CONFIRM
 
 // VALUE TYPES
 // ---------------------------------------------------------------------------
