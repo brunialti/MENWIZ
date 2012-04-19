@@ -27,11 +27,18 @@
 #define SCREATE(p,s) p=(char *)malloc(strlen(s)+1); strcpy(p,s)
 #define SFORM(b,s,l) memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=NULL; lcd->print(b)
 #define ERROR(a)     MW_error=a
+#define FILLBLANK(b,l) memset(b,32,l);b[l]=NULL; lcd->print(b)
 
-char *buf;
-char MW_ver[]={"0.3.0"};
+// GLOBAL VARIABLES
+// ---------------------------------------------------------------------------
+int MW_FLOAT_DEC=1;
+char buf[81];
+static const char MW_ver[]={"0.3.0"};
+static const char MW_FMT_VARINT[]={"%d [%d] %d"};
+//static const char MW_FMT_VARUBYTE[]={"%d [%d] %d"};
+static const char MW_STR_CONFIRM[]={"[C] to run."};
+static const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 byte MW_error;
-byte c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 
 menwiz::menwiz(){
   fl_splash=false;
@@ -73,7 +80,7 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
   ERROR(0);   
    //INSTANTIATE NEW MENU VARIABLES
   if (idx_m<MAX_MENU){   
-    m[idx_m].type=(int)t;         // ROOT| SUBMENU| VAR
+    m[idx_m].type=(MW_TYPE)t;         // ROOT| SUBMENU| VAR
     SCREATE(m[idx_m].label,(char *)lab);      // OPT:STORE STRING BY REFERENCE, NOT BY VALUE?
     m[idx_m].cod=idx_m;      // unique menu id
     if (t==MW_ROOT){
@@ -101,7 +108,7 @@ _option *_menu::addItem(int t,char *lab){
   ERROR(0);
   if (idx_o<MAX_OPTXMENU){
     op=(_option *) malloc(sizeof(_option));
-    op->type=t;
+    op->type=(MW_TYPE)t;
     SCREATE(op->label,(char *)lab);
     o[idx_o]=(_option*)op;
     idx_o++;
@@ -114,12 +121,12 @@ void _menu::addVar(int t, int* v){
 
   ERROR(0);
   if(type==MW_ROOT){     //patch to be verified
-    type=(int)MW_VAR;    //patch to be verified
+    type=(MW_TYPE)MW_VAR;    //patch to be verified
     }	
   if (t!=MW_LIST)
     ERROR(120);
   else if(type==MW_VAR){
-    var.type=(int)t;
+    var.type=(MW_TYPE)t;
     var.val=v;
     cur_item=VBYTE(v);
     }
@@ -133,12 +140,46 @@ void _menu::addVar(int t, int* v, int low, int up, int incr){
   if (t!=MW_AUTO_INT)
     ERROR(120);
   else if(type==MW_VAR){
-    var.type=(int)t;
+    var.type=(MW_TYPE)t;
     var.val=v;
     var.lower=malloc(sizeof(int)); if(var.lower!=NULL) VINT(var.lower)=low; else {ERROR(900); return;}
     var.upper=malloc(sizeof(int)); if(var.upper!=NULL) VINT(var.upper)=up; else {ERROR(900); return;}
     var.incr=malloc(sizeof(int));  if(var.incr!=NULL) VINT(var.incr)=incr; else {ERROR(900); return;} 
     var.old=malloc(sizeof(int));   if(var.old!=NULL) VINT(var.old)=VINT(var.val); else {ERROR(900); return;} 
+    }
+  else{ERROR(110);}
+// ERROR    
+  }
+
+void _menu::addVar(int t, float* v, float low, float up, float incr){
+
+  ERROR(0);
+  if (t!=MW_AUTO_FLOAT)
+    ERROR(120);
+  else if(type==MW_VAR){
+    var.type=(MW_TYPE)t;
+    var.val=v;
+    var.lower=malloc(sizeof(float)); if(var.lower!=NULL) VFLOAT(var.lower)=low; else {ERROR(900); return;}
+    var.upper=malloc(sizeof(float)); if(var.upper!=NULL) VFLOAT(var.upper)=up; else {ERROR(900); return;}
+    var.incr=malloc(sizeof(float));  if(var.incr!=NULL) VFLOAT(var.incr)=incr; else {ERROR(900); return;} 
+    var.old=malloc(sizeof(float));   if(var.old!=NULL) VFLOAT(var.old)=VFLOAT(var.val); else {ERROR(900); return;} 
+    }
+  else{ERROR(110);}
+// ERROR    
+  }
+
+void _menu::addVar(int t, byte* v, byte low, byte up, byte incr){
+
+  ERROR(0);
+  if (t!=MW_AUTO_BYTE)
+    ERROR(120);
+  else if(type==MW_VAR){
+    var.type=(MW_TYPE)t;
+    var.val=v;
+    var.lower=malloc(sizeof(byte)); if(var.lower!=NULL) VBYTE(var.lower)=low; else {ERROR(900); return;}
+    var.upper=malloc(sizeof(byte)); if(var.upper!=NULL) VBYTE(var.upper)=up; else {ERROR(900); return;}
+    var.incr=malloc(sizeof(byte));  if(var.incr!=NULL) VBYTE(var.incr)=incr; else {ERROR(900); return;} 
+    var.old=malloc(sizeof(byte));   if(var.old!=NULL) VBYTE(var.old)=VBYTE(var.val); else {ERROR(900); return;} 
     }
   else{ERROR(110);}
 // ERROR    
@@ -150,7 +191,7 @@ void _menu::addVar(int t, boolean* v){
   if (t!=MW_BOOLEAN)
     ERROR(120);
   else if(type==MW_VAR){
-    var.type=(int)t;
+    var.type=(MW_TYPE)t;
     var.val=v;
     var.old=malloc(sizeof(boolean));  if(var.old!=NULL) VBOOL(var.old)=VBOOL(var.val); else {ERROR(900); return;} 
     }
@@ -164,7 +205,7 @@ void  _menu::addVar(int t,void (*f)()){
   if (t!=MW_ACTION)
     ERROR(120);
   else if(type==MW_VAR){
-    var.type=(int)t;
+    var.type=(MW_TYPE)t;
     var.action=f;
     }
   else{ERROR(110);}
@@ -186,9 +227,9 @@ void menwiz::begin(void *l,int c, int r){
   lcd->begin(c,r);  // Size of the LCD
   lcd->setBacklight(HIGH);
   lcd->noCursor();
-  lcd->createChar(0,c0);
-  sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
-  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
+  lcd->createChar(0,(uint8_t*)c0);
+//  sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
+//  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
   fl_usrScreen_draw=false;
   fl_splash_draw=false;
   }
@@ -196,7 +237,7 @@ void menwiz::begin(void *l,int c, int r){
 char* menwiz::getVer(){
 
   ERROR(0);
-  return MW_ver; 
+  return (char*) MW_ver; 
   }
 
 void menwiz::draw(){
@@ -287,7 +328,7 @@ void menwiz::drawMenu(_menu *mc){
         }
       else{
         lcd->setCursor(0,i);
-        SFORM(buf," ",(int) col);
+        FILLBLANK(buf,col);
         }
       }
     }    
@@ -311,23 +352,39 @@ void menwiz::drawVar(_menu *mc){
           }
         else{
           lcd->setCursor(0,i);
-          SFORM(buf," ",(int) col);
+          FILLBLANK(buf,col);
           }
         }
       break;  
     case MW_AUTO_INT:
+    case MW_AUTO_BYTE:
       for(i=2;i<row;i++){
         lcd->setCursor(0,i);
-        SFORM(buf," ",(int) col);
+        FILLBLANK(buf,col);
         }
       lcd->setCursor(0,1);
-      sprintf(sbuf,"%d< %d <%d",VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
+      if(mc->var.type==MW_AUTO_INT)
+      	sprintf(sbuf,MW_FMT_VARINT,VINT(mc->var.lower),VINT(mc->var.old),VINT(mc->var.upper));
+      else
+      	sprintf(sbuf,MW_FMT_VARINT,VBYTE(mc->var.lower),VBYTE(mc->var.old),VBYTE(mc->var.upper));
       SFORM(buf,sbuf,(int) col);
+      break;      
+    case MW_AUTO_FLOAT:
+      for(i=2;i<row;i++){
+        lcd->setCursor(0,i);
+        FILLBLANK(buf,col);
+        }
+      lcd->setCursor(0,1);
+      lcd->print(dtostrf(VFLOAT(mc->var.lower),0,MW_FLOAT_DEC,buf));
+      lcd->write('[');
+      lcd->print(dtostrf(VFLOAT(mc->var.old),0,MW_FLOAT_DEC,buf));
+      lcd->write(']');
+      lcd->print(dtostrf(VFLOAT(mc->var.upper),0,MW_FLOAT_DEC,buf));
       break;      
     case MW_BOOLEAN:
       for(i=2;i<row;i++){
         lcd->setCursor(0,i);
-        SFORM(buf," ",(int) col);
+        FILLBLANK(buf,col);
         }
       lcd->setCursor(0,1);
       SFORM(buf,VBOOL(mc->var.old)?"ON":"OFF",(int) col);
@@ -335,10 +392,10 @@ void menwiz::drawVar(_menu *mc){
     case MW_ACTION:
       for(i=2;i<row;i++){
         lcd->setCursor(0,i);
-        SFORM(buf," ",(int) col);
+        FILLBLANK(buf,col);
         }
       lcd->setCursor(0,1);
-      SFORM(buf,"[Confirm] to run.",(int) col);
+      SFORM(buf,MW_STR_CONFIRM,(int) col);
       break;      
     default:{}
     }
@@ -426,8 +483,14 @@ void menwiz::actBTD(){
   }
 
 void menwiz::actBTL(){ 
-  if(cur_menu->var.type==MW_AUTO_INT){
+  if(cur_menu->var.type==MW_AUTO_BYTE){
+    VBYTE(cur_menu->var.old)=max((VBYTE(cur_menu->var.old)-VBYTE(cur_menu->var.incr)),VBYTE(cur_menu->var.lower));
+    }
+  else if(cur_menu->var.type==MW_AUTO_INT){
     VINT(cur_menu->var.old)=max((VINT(cur_menu->var.old)-VINT(cur_menu->var.incr)),VINT(cur_menu->var.lower));
+    }    
+  else if(cur_menu->var.type==MW_AUTO_FLOAT){
+    VFLOAT(cur_menu->var.old)=max((VFLOAT(cur_menu->var.old)-VFLOAT(cur_menu->var.incr)),VFLOAT(cur_menu->var.lower));
     }    
   else if(cur_menu->var.type==MW_BOOLEAN){
     VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
@@ -437,6 +500,12 @@ void menwiz::actBTL(){
 void menwiz::actBTR(){ 
   if(cur_menu->var.type==MW_AUTO_INT){
     VINT(cur_menu->var.old)=min((VINT(cur_menu->var.old)+VINT(cur_menu->var.incr)),VINT(cur_menu->var.upper));
+    }    
+  else if(cur_menu->var.type==MW_AUTO_BYTE){
+    VBYTE(cur_menu->var.old)=min((VBYTE(cur_menu->var.old)+VBYTE(cur_menu->var.incr)),VBYTE(cur_menu->var.upper));
+    }    
+  else if(cur_menu->var.type==MW_AUTO_FLOAT){
+    VFLOAT(cur_menu->var.old)=min((VFLOAT(cur_menu->var.old)+VFLOAT(cur_menu->var.incr)),VFLOAT(cur_menu->var.upper));
     }    
   else if(cur_menu->var.type==MW_BOOLEAN){
     VBOOL(cur_menu->var.old)=!VBOOL(cur_menu->var.old);
@@ -470,6 +539,10 @@ void menwiz::actBTC(){
     VINT(cur_menu->var.val)=VINT(cur_menu->var.old);
     cur_menu=&m[cur_menu->parent];
     }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_FLOAT)){        
+    VFLOAT(cur_menu->var.val)=VFLOAT(cur_menu->var.old);
+    cur_menu=&m[cur_menu->parent];
+    }
   else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
     VBOOL(cur_menu->var.val)=VBOOL(cur_menu->var.incr);
     cur_menu=&m[cur_menu->parent];
@@ -501,23 +574,4 @@ int menwiz::freeRam () {
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

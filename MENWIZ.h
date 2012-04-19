@@ -36,38 +36,45 @@
   #include <WProgram.h>
 #endif 
 
+// DIMENSIONS (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
+// ---------------------------------------------------------------------------
+#define MAX_MENU       15   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_OPTXMENU   5    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
+#define MAX_BUFFER     84   //dimension=columns x rows + rows. CHANGE IT IF LCD IS BIGGER THAN 4X20 CHARS
+
 // NODE TYPES 
 // ---------------------------------------------------------------------------
-#define MW_ROOT      100  //root menu
-#define MW_SUBMENU   101  //submenu
-#define MW_VAR       102  //terminal node
+#define MW_ROOT      10  //root menu
+#define MW_SUBMENU   11  //submenu
+#define MW_VAR       12  //terminal node
 
 // CUR MODE
 // ---------------------------------------------------------------------------
-#define MW_MODE_SPLASH     10  
-#define MW_MODE_USRSCREEN  11  
-#define MW_MODE_MENU       12  
+#define MW_MODE_SPLASH     20  
+#define MW_MODE_USRSCREEN  21  
+#define MW_MODE_MENU       22  
 
 // BUTTON CODES
 // ---------------------------------------------------------------------------
-#define MW_BTNULL    400   //NOBUTTON
-#define MW_BTU       401   //UP
-#define MW_BTD       402   //DOWN
-#define MW_BTL       403   //RIGTH
-#define MW_BTR       404   //LEFT
-#define MW_BTE       405   //ESCAPE
-#define MW_BTC       406   //CONFIRM
+#define MW_BTNULL    30   //NOBUTTON
+#define MW_BTU       31   //UP
+#define MW_BTD       32   //DOWN
+#define MW_BTL       33   //RIGTH
+#define MW_BTR       34   //LEFT
+#define MW_BTE       35   //ESCAPE
+#define MW_BTC       36   //CONFIRM
 
 // VALUE TYPES
 // ---------------------------------------------------------------------------
-#define MW_LIST        501  //OPTION LIST
-#define MW_BOOLEAN     502  //ON/OFF TOGGLE
-#define MW_AUTO_INT    503  //INTEGER VALUE WITH INCREMENT STEP
-#define MW_AUTO_FLOAT  504  //not implemented yet
-#define MW_TEXT        505  //not implemented yet
-#define MW_ACTION      506  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
-#define MW_EDIT_INT    507  //not implemented yet
-#define MW_EDIT_FLOAT  508  //not implemented yet
+#define MW_LIST        41  //OPTION LIST
+#define MW_BOOLEAN     42  //ON/OFF TOGGLE
+#define MW_AUTO_INT    43  //INTEGER VALUE WITH INCREMENT STEP
+#define MW_AUTO_FLOAT  44  //FLOATING POINT VALUE WITH INCREMENT STEP
+#define MW_AUTO_BYTE   45  //byte VALUE WITH INCREMENT STEP
+#define MW_TEXT        46  //not implemented yet
+#define MW_ACTION      47  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
+#define MW_EDIT_INT    48  //not implemented yet
+#define MW_EDIT_FLOAT  49  //not implemented yet
 
 // DEREFERENCING OPERATORS
 // ---------------------------------------------------------------------------
@@ -79,10 +86,8 @@
 
 // OTHERS
 // ---------------------------------------------------------------------------
-#define MAX_MENU       15   //maximum number of nodes
-#define MAX_OPTXMENU   5    //maximum number of oprions for each node
-#define LAP_MENU       4000
 #define MW_EOL_CHAR    0x0A
+#define MW_TYPE byte
 
 typedef struct{
   boolean fl;
@@ -104,7 +109,7 @@ typedef struct{
 class _var{
 public:
            _var();
-  int      type;
+  MW_TYPE  type;
   void*    val;
   void*    old;
   void     (*action)();
@@ -116,7 +121,7 @@ public:
 class _option{
 public:
            _option();
-  int      type;
+  MW_TYPE  type;
   char*    label;
   byte     sbm;  //submemu id if type=SUBMENU
 private:
@@ -128,10 +133,12 @@ public:
            _menu();
   void     addVar(int, int*);
   void     addVar(int, int*, int, int, int);
+  void     addVar(int, float*, float, float, float);
+  void     addVar(int, byte *,byte ,byte ,byte);
   void     addVar(int, boolean *);
   void     addVar(int, void (*f)());
   _option* addItem(int, char*);
-  int      type;
+  MW_TYPE  type;
   _var     var;
   char*    label;
   byte     cod;
@@ -157,7 +164,7 @@ public:
   int      getErrorMessage(boolean); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      freeRam();
   LCD *    lcd;
-  char*    sbuf;             		//lcd screen buffer (+ 1 for each line) 
+  char     sbuf[MAX_BUFFER];            //lcd screen buffer (+ 1 for each line) 
   byte     row;
   byte     col;
   byte     cur_mode;
