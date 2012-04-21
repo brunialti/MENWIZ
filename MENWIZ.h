@@ -84,6 +84,12 @@
 #define VFLOAT(a)   *(float*)a
 #define VFUNC(a)    (* a)
 
+// FLAGS
+// ---------------------------------------------------------------------------
+#define FL_SPLASH 		1   		
+#define FL_SPLASH_DRAW		2 	
+#define FL_USRSCREEN_DRAW 	3  	
+
 // OTHERS
 // ---------------------------------------------------------------------------
 #define MW_EOL_CHAR    0x0A
@@ -109,6 +115,7 @@ typedef struct{
 class _var{
 public:
            _var();
+
   MW_TYPE  type;
   void*    val;
   void*    old;
@@ -121,6 +128,7 @@ public:
 class _option{
 public:
            _option();
+
   MW_TYPE  type;
   char*    label;
   byte     sbm;  //submemu id if type=SUBMENU
@@ -138,6 +146,7 @@ public:
   void     addVar(int, boolean *);
   void     addVar(int, void (*f)());
   _option* addItem(int, char*);
+
   MW_TYPE  type;
   _var     var;
   char*    label;
@@ -154,39 +163,33 @@ class menwiz{
 public:
            menwiz();
   void     begin(void *,int, int);
-  char*    getVer();
   void     addSplash(char *,int);
   void     addUsrScreen(void (*f)(), unsigned long);
   void     addUsrNav(int (*f)());
   _menu*   addMenu(int, _menu *, char *);
   void     draw();
   void     navButtons(int,int,int,int,int,int);
+  void     drawUsrScreen(char *);       //draw user screen(s)
   int      getErrorMessage(boolean); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      freeRam();
+  char*    getVer();
+  byte     flags;
   LCD *    lcd;
   char     sbuf[MAX_BUFFER];            //lcd screen buffer (+ 1 for each line) 
-  byte     row;
-  byte     col;
-  byte     cur_mode;
   unsigned long tm_start;       	//start time (set when begin method is invocated)
-  //splash screen mngt
-  boolean  fl_splash;                   //splash screen required
-  boolean  fl_splash_draw;    		//yet drawn flag
   unsigned long tm_splash;      	//splash screen duration  
-  //user default screen mngt
-  _cback   usrScreen;	        	//callback
-  boolean  fl_usrScreen_draw;   	//yet drawn flag 
   unsigned long tm_usrScreen;   	//lap time before usrscreen  
-  void     drawUsrScreen(char *);       //draw user screen(s)
-  //user defined navigation device callback
+  _cback   usrScreen;	        	//callback
   _cback   usrNav;    
-
   byte     idx_m;
   _menu    m[MAX_MENU];
   _menu*   cur_menu;
   _menu*   root;
   _nav     btx;
 private:
+  byte     row;
+  byte     col;
+  byte     cur_mode;
   int      scanNavButtons();
   int      actNavButtons(int);
   void     drawMenu(_menu *);
@@ -197,7 +200,6 @@ private:
   void     actBTR();
   void     actBTE();
   void     actBTC();
-
 protected:
 };
 

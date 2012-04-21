@@ -40,11 +40,11 @@ static const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B000
 byte MW_error;
 
 menwiz::menwiz(){
-  fl_splash=false;
+  bitWrite(flags,FL_SPLASH,0);
+  bitWrite(flags,FL_SPLASH_DRAW,0);
+  bitWrite(flags,FL_USRSCREEN_DRAW,0);
   usrScreen.fl=false;
   usrNav.fl=false;
-  fl_splash_draw=false;
-  fl_usrScreen_draw=false;
   btx.last_button=MW_BTU;
   idx_m=0;
   row=0;
@@ -222,6 +222,7 @@ void menwiz::begin(void *l,int c, int r){
   tm_start=millis();
   row=r;
   col=c;
+  flags=0;
   lcd=(LCD*)l; 
   lcd->begin(c,r);  // Size of the LCD
   lcd->setBacklight(HIGH);
@@ -229,8 +230,8 @@ void menwiz::begin(void *l,int c, int r){
   lcd->createChar(0,(uint8_t*)c0);
 //  sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
 //  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
-  fl_usrScreen_draw=false;
-  fl_splash_draw=false;
+//  bitWrite(flags,FL_USRSCREEN_DRAW,0);
+//  bitWrite(flags,FL_SPLASH_DRAW,0);
   }
 
 char* menwiz::getVer(){
@@ -259,31 +260,31 @@ void menwiz::draw(){
   int long lap2=(millis()-btx.tm_push);
 
   // if defined splashscreen & not yet drawn & time window is ok, draw it  
-  if((fl_splash==true) && (lap1<tm_splash)){
+  if((bitRead(flags,FL_SPLASH)==true) && (lap1<tm_splash)){
     cur_mode=MW_MODE_SPLASH;
     //draw only once
-    if(fl_splash_draw==false){
+    if(bitRead(flags,FL_SPLASH_DRAW)==false){
       drawUsrScreen(sbuf);
-      fl_splash_draw=true;
+      bitWrite(flags,FL_SPLASH_DRAW,1);
       }
     }
   // if defined usrscreen & time since last button push > user defined time, draw it  
   else if((usrScreen.fl) && (lap2>tm_usrScreen)){
     cur_mode=MW_MODE_USRSCREEN;
-    fl_usrScreen_draw=false;
+    bitWrite(flags,FL_USRSCREEN_DRAW,0);
     usrScreen.fv();
     }
   else{
   // if a button was pushed since last call, draw menu  
     cur_mode=MW_MODE_MENU;
-    if((btx.last_button!=MW_BTNULL) || (!fl_usrScreen_draw))
-      fl_usrScreen_draw=true;
+    if((btx.last_button!=MW_BTNULL) || (!bitRead(flags,bitRead(flags,FL_USRSCREEN_DRAW))))
+      bitWrite(flags,FL_USRSCREEN_DRAW,1);
       drawMenu(cur_menu);
     }
   }
 
 void menwiz::drawUsrScreen(char *scr){
-  int i,j,k,z;
+  int i,j,k;
 
   ERROR(0);
   for (int i=0,j=0,k=0;(k<row)&&(i<(strlen(scr)+1));i++){
@@ -375,9 +376,9 @@ void menwiz::drawVar(_menu *mc){
         }
       lcd->setCursor(0,1);
       lcd->print(dtostrf(VFLOAT(mc->var.lower),0,MW_FLOAT_DEC,buf));
-      lcd->write('[');
+      lcd->print(" [");
       lcd->print(dtostrf(VFLOAT(mc->var.old),0,MW_FLOAT_DEC,buf));
-      lcd->write(']');
+      lcd->print("] ");
       lcd->print(dtostrf(VFLOAT(mc->var.upper),0,MW_FLOAT_DEC,buf));
       break;      
     case MW_BOOLEAN:
@@ -405,8 +406,8 @@ void menwiz::addSplash(char *s, int lap){
   ERROR(0);
   strcpy(sbuf,s);
   tm_splash=lap;
-  fl_splash=true;
-  fl_splash_draw=false;
+  bitWrite(flags,FL_SPLASH,1);
+  bitWrite(flags,FL_SPLASH_DRAW,0);
   }
 
 void menwiz::addUsrScreen(void f(), unsigned long t){
@@ -513,7 +514,13 @@ void menwiz::actBTR(){
 
 void menwiz::actBTE(){ 
   if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
-    VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
+    VINT(cur_menu->var.old)=VINT(cur_menu->var.val);
+    }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_FLOAT)){        
+    VFLOAT(cur_menu->var.old)=VFLOAT(cur_menu->var.val);
+    }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_BYTE)){        
+    VBYTE(cur_menu->var.old)=VBYTE(cur_menu->var.val);
     }
   if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
     VBOOL(cur_menu->var.old)=VBOOL(cur_menu->var.val);
@@ -534,12 +541,16 @@ void menwiz::actBTC(){
     VINT(cur_menu->var.val)=(int)cur_menu->cur_item;
     cur_menu=&m[cur_menu->parent];
     }
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_FLOAT)){        
+    VFLOAT(cur_menu->var.val)=VFLOAT(cur_menu->var.old);
+    cur_menu=&m[cur_menu->parent];
+    }
   else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_INT)){        
     VINT(cur_menu->var.val)=VINT(cur_menu->var.old);
     cur_menu=&m[cur_menu->parent];
     }
-  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_FLOAT)){        
-    VFLOAT(cur_menu->var.val)=VFLOAT(cur_menu->var.old);
+  else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_AUTO_BYTE)){        
+    VBYTE(cur_menu->var.val)=VBYTE(cur_menu->var.incr);
     cur_menu=&m[cur_menu->parent];
     }
   else if((cur_menu->type==MW_VAR)&&(cur_menu->var.type==MW_BOOLEAN)){        
