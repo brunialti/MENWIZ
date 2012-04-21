@@ -1,6 +1,6 @@
 MENWIZ: YET ANOTHER CHARACTER LCD MENU WIZARD LIBRARY
 
-This library implement menu creation with simple coding.
+This library implement menu creation with simple and compact code.
 
 The pros are:
 - (near) asynchronous: that is the library does not take mu control while working, usefull if your sketch need to work while you are changing the settings
