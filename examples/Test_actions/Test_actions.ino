@@ -10,12 +10,12 @@
 #include <MENWIZ.h>
 
 // DEFINE ARDUINO PINS FOR THE NAVIGATION BUTTONS
-#define UP_BOTTON_PIN       9
-#define DOWN_BOTTON_PIN     10
-#define LEFT_BOTTON_PIN     7 
-#define RIGHT_BOTTON_PIN    8
-#define CONFIRM_BOTTON_PIN  12
-#define ESCAPE_BOTTON_PIN   11
+#define UP_BUTTON_PIN       9
+#define DOWN_BUTTON_PIN     10
+#define LEFT_BUTTON_PIN     7 
+#define RIGHT_BUTTON_PIN    8
+#define CONFIRM_BUTTON_PIN  12
+#define ESCAPE_BUTTON_PIN   11
 
 //Create global object menu and lcd
 menwiz menu;
@@ -50,7 +50,7 @@ void setup(){
 
   //declare navigation buttons (required)
   // equivalent shorter call: menu.navButtons(9,10,7,8,11,12);
-  menu.navButtons(UP_BOTTON_PIN,DOWN_BOTTON_PIN,LEFT_BOTTON_PIN,RIGHT_BOTTON_PIN,ESCAPE_BOTTON_PIN,CONFIRM_BOTTON_PIN);
+  menu.navButtons(UP_BUTTON_PIN,DOWN_BUTTON_PIN,LEFT_BUTTON_PIN,RIGHT_BUTTON_PIN,ESCAPE_BUTTON_PIN,CONFIRM_BUTTON_PIN);
   }
 
 void loop(){

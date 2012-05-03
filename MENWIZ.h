@@ -94,6 +94,8 @@
 // ---------------------------------------------------------------------------
 #define MW_EOL_CHAR    0x0A
 #define MW_TYPE byte
+#define MW_4BTN 0
+#define MW_6BTN 1
 
 typedef struct{
   boolean fl;
@@ -112,10 +114,7 @@ typedef struct{
   Button    BTC;   
 }_nav;
 
-class _var{
-public:
-           _var();
-
+typedef struct{
   MW_TYPE  type;
   void*    val;
   void*    old;
@@ -123,7 +122,7 @@ public:
   void*    lower;
   void*    upper;
   void*    incr;   
-};
+}_var;
 
 class _option{
 public:
@@ -132,8 +131,6 @@ public:
   MW_TYPE  type;
   char*    label;
   byte     sbm;  //submemu id if type=SUBMENU
-private:
-protected:
 };
 
 class _menu{
@@ -148,7 +145,7 @@ public:
   _option* addItem(int, char*);
 
   MW_TYPE  type;
-  _var     var;
+  _var     *var;
   char*    label;
   byte     cod;
   byte     parent;
@@ -169,6 +166,7 @@ public:
   _menu*   addMenu(int, _menu *, char *);
   void     draw();
   void     navButtons(int,int,int,int,int,int);
+  void     navButtons(int,int,int,int);
   void     drawUsrScreen(char *);       //draw user screen(s)
   int      getErrorMessage(boolean); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      freeRam();
@@ -185,7 +183,7 @@ public:
   _menu    m[MAX_MENU];
   _menu*   cur_menu;
   _menu*   root;
-  _nav     btx;
+  _nav*    btx;
 private:
   byte     row;
   byte     col;
