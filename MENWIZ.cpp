@@ -33,7 +33,7 @@
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
 char buf[81];
-const char MW_ver[]={"0.5.0"};
+const char MW_ver[]={"0.5.2"};
 const char MW_FMT_VARINT[]={"%d [%d] %d"};
 const char MW_STR_CONFIRM[]={"[C] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
@@ -71,6 +71,10 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
    _option *op;
 
   ERROR(0);   
+  if ((idx_m==0)&&(t!=MW_ROOT)){
+    ERROR(200);
+    return NULL;
+    }
    //INSTANTIATE NEW MENU VARIABLES
   if (idx_m<MAX_MENU){   
     m[idx_m].type=(MW_TYPE)t;         // ROOT| SUBMENU| VAR
@@ -91,7 +95,9 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
     idx_m++;
     return &m[idx_m-1];
     }
-  else{ERROR(100);return NULL;}
+  else{
+    ERROR(100);
+    return NULL;}
 // ERROR    
    }
 
@@ -387,7 +393,7 @@ void menwiz::drawVar(_menu *mc){
       lcd->print(dtostrf(VFLOAT(mc->var->old),0,MW_FLOAT_DEC,buf));
       lcd->print(F("] "));
       lcd->print(dtostrf(VFLOAT(mc->var->upper),0,MW_FLOAT_DEC,buf));
-      break;      
+      break;
     case MW_BOOLEAN:
       for(i=2;i<row;i++){
         lcd->setCursor(0,i);
@@ -597,12 +603,13 @@ int menwiz::getErrorMessage(boolean fl){
     switch(MW_error)
       {
       case 0:   break; 
-      case 100: Serial.println(F("ERR.100-Too many _menu items"));break; 
-      case 105: Serial.println(F("ERR.105-Too many _option items"));break; 
-      case 110: Serial.println(F("ERR.110-MW_VAR menu type required"));break; 
-      case 120: Serial.println(F("ERR.120-Bad 1st arg"));break; 
-      case 900: Serial.println(F("ERR.900-Out of memory"));break; 
-      default:  Serial.println(F("ERR.000-Unknown err"));break; 
+      case 200: Serial.println(F("E200-Root undefined"));break; 
+      case 100: Serial.println(F("E100-Too many items. Increment MAX_MENU"));break; 
+      case 105: Serial.println(F("E105-Too many items. IncremenT MAX_OPTXMENU"));break; 
+      case 110: Serial.println(F("E110-MW_VAR menu type required"));break; 
+      case 120: Serial.println(F("E120-Bad 1st arg"));break; 
+      case 900: Serial.println(F("E900-Out of memory"));break; 
+      default:  Serial.println(F("E000-Unknown err"));break; 
       }
     }
   return MW_error;

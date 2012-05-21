@@ -50,8 +50,8 @@ void setup(){
           s2->addVar(MW_AUTO_FLOAT,&f,11.00,100.00,0.5);
       s2=menu.addMenu(MW_VAR,s1,"Test byte var");
           s2->addVar(MW_AUTO_BYTE,&b,25,254,10);
-      s2=menu.addMenu(MW_VAR,s1,"Test byte var");
-          s2->addVar(MW_AUTO_BOOLEAN,&bb);
+      s2=menu.addMenu(MW_VAR,s1,"Test boolean var");
+          s2->addVar(MW_BOOLEAN,&bb);
     s1=menu.addMenu(MW_VAR,r,"TEST ACTION");  //add a submenu node to the root menu
       s2->addVar(MW_ACTION,act);
 
@@ -82,6 +82,6 @@ void msc(){
   }
 
 void act(){
-  Serial.println("FIRED ACTION!);
+  Serial.println("FIRED ACTION!");
   }
 
