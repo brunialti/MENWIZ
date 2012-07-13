@@ -56,7 +56,7 @@ void setup(){
       s2=menu.addMenu(MW_VAR,s1,"Test boolean var");  //add a terminal node (that is "variable"); 
           s2->addVar(MW_BOOLEAN,&bb);                    //create a variable of type "boolean" 
                                                          //...associated to the terminal node and bind it to the app variable "bb" of type boolean
-    s1=menu.addMenu(MW_VAR,r,"TEST ACTION")              //add a terminal node (that is "variable"); 
+    s1=menu.addMenu(MW_VAR,r,"TEST ACTION");              //add a terminal node (that is "variable"); 
       s1->addVar(MW_ACTION,act);                         //create an "action" associated to the terminal node... 
                                                          //...the act function will be called when enter button is pushed
      
