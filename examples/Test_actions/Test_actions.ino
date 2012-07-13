@@ -34,18 +34,18 @@ void setup(){
   menu.begin(&lcd,20,4);
 
   //create the menu tree
-  r=menu.addMenu(MW_ROOT,NULL,"GOLF ROBOT");           //create a root menu at first (required)
-      s1=menu.addMenu(MW_VAR,r,"Modes menu");          //add a terminal node in the menu tree (that is "variable"); 
+  r=menu.addMenu(MW_ROOT,NULL,F("GOLF ROBOT"));           //create a root menu at first (required)
+      s1=menu.addMenu(MW_VAR,r,F("Modes menu"));          //add a terminal node in the menu tree (that is "variable"); 
           s1->addVar(MW_LIST,&m);                      //create the terminal node variable of type OPTION LIST and bind it to the app variable "m"
-          s1->addItem(MW_LIST,"Drive");                //add an option to the OPTION LIST
-          s1->addItem(MW_LIST,"Punch");                //add an other option to the OPTION LIST
-          s1->addItem(MW_LIST,"Chip");                 //add the third option to the OPTION LIST
-          s1->addItem(MW_LIST,"Putt");                 //add the last option to the OPTION LIST
-      s1=menu.addMenu(MW_VAR,r,"Putt Dist.(feets)");   //create an other "variable" menu terminal mode
+          s1->addItem(MW_LIST,F("Drive"));                //add an option to the OPTION LIST
+          s1->addItem(MW_LIST,F("Punch"));                //add an other option to the OPTION LIST
+          s1->addItem(MW_LIST,F("Chip"));                 //add the third option to the OPTION LIST
+          s1->addItem(MW_LIST,F("Putt"));                 //add the last option to the OPTION LIST
+      s1=menu.addMenu(MW_VAR,r,F("Putt Dist.(feets)"));   //create an other "variable" menu terminal mode
           s1->addVar(MW_AUTO_INT,&fd,0,100,1);         //int type, fd binded variable, rage 0-100, step 1
-      s1=menu.addMenu(MW_VAR,r,"Other Dist. (yrds)");
+      s1=menu.addMenu(MW_VAR,r,F("Other Dist. (yrds)"));
           s1->addVar(MW_AUTO_INT,&yd,0,300,5);         //int type, yd binded variable, rage 0-300, step 5
-      s1=menu.addMenu(MW_VAR,r,"Fire action");         //latest menu entry
+      s1=menu.addMenu(MW_VAR,r,F("Fire action"));         //latest menu entry
           s1->addVar(MW_ACTION,fireAction);            // associate an action (variable of type function) to the menu entry
 
   //declare navigation buttons (required)

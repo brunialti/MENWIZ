@@ -40,33 +40,36 @@ void setup(){
 
   //create the menu tree
   r=menu.addMenu(MW_ROOT,NULL,"MAIN MENU");           //create a root menu at first (required)
-    s1=menu.addMenu(MW_SUBMENU,r,"MEASURE SUBMENU");  //add a submenu node to the root menu
-      s2=menu.addMenu(MW_VAR,s1,"Test list");    //add a terminal node in the menu tree (that is "variable"); 
-          s2->addVar(MW_LIST,&tp);                    //create the terminal node variable of type OPTION LIST and bind it to the app variable "tp"
-          s2->addItem(MW_LIST,"option 1");             //add an option to the OPTION LIST
-          s2->addItem(MW_LIST,"option 2");           //add an other option to the OPTION LIST
-          s2->addItem(MW_LIST,"option 3");     //add the third and last option to the OPTION LIST
-      s2=menu.addMenu(MW_VAR,s1,"Test float var");
-          s2->addVar(MW_AUTO_FLOAT,&f,11.00,100.00,0.5);
-      s2=menu.addMenu(MW_VAR,s1,"Test byte var");
-          s2->addVar(MW_AUTO_BYTE,&b,25,254,10);
-      s2=menu.addMenu(MW_VAR,s1,"Test boolean var");
-          s2->addVar(MW_BOOLEAN,&bb);
-    s1=menu.addMenu(MW_VAR,r,"TEST ACTION");  //add a submenu node to the root menu
-      s2->addVar(MW_ACTION,act);
-
+    s1=menu.addMenu(MW_SUBMENU,r,"MEASURE SUBMENU");  //add a child (submenu) node to the root menu
+      s2=menu.addMenu(MW_VAR,s1,"Test list");         //add a terminal node (that is "variable"); 
+          s2->addVar(MW_LIST,&tp);                       //create a variable of type "option list".. 
+                                                         //...associated to the terminal node and bind it to the app variable "tp" of type int
+          s2->addItem(MW_LIST,"option 1");            //add option to the OPTION LIST
+          s2->addItem(MW_LIST,"option 2");            //add option to the OPTION LIST
+          s2->addItem(MW_LIST,"option 3");            //add option to the OPTION LIST
+      s2=menu.addMenu(MW_VAR,s1,"Test float var");    //add a terminal node (that is "variable"); 
+          s2->addVar(MW_AUTO_FLOAT,&f,11.00,100.00,0.5); //create a variable of type "float number"... 
+                                                         //...associated to the terminal node and bind it to the app variable "f" of type float
+      s2=menu.addMenu(MW_VAR,s1,"Test byte var");     //add a terminal node (that is "variable"); 
+          s2->addVar(MW_AUTO_BYTE,&b,25,254,10);         //create a variable of type "byte"...
+                                                         //...associated to the terminal node and bind it to the app variable "b" of typr byte
+      s2=menu.addMenu(MW_VAR,s1,"Test boolean var");  //add a terminal node (that is "variable"); 
+          s2->addVar(MW_BOOLEAN,&bb);                    //create a variable of type "boolean" 
+                                                         //...associated to the terminal node and bind it to the app variable "bb" of type boolean
+    s1=menu.addMenu(MW_VAR,r,"TEST ACTION")              //add a terminal node (that is "variable"); 
+      s1->addVar(MW_ACTION,act);                         //create an "action" associated to the terminal node... 
+                                                         //...the act function will be called when enter button is pushed
+     
   //(optional) create a splash screen with some usefull infos 
-  //the character # marks end of line (WARNING: this could be changed in the next releases)
+  //the character \n marks end of line 
   //(tip): use preallocated internal menu.sbuf buffer to save memory space!
   sprintf(menu.sbuf,"MENWIZ TEST V %s\n.Free mem. :%d\n.Used mem  :%d\n.Lap secs  :%d",menu.getVer(),menu.freeRam(),mem-menu.freeRam(),5);
   menu.addSplash((char *) menu.sbuf, 5000);
  
   //declare navigation buttons (required)
-  // equivalent shorter call: menu.navButtons(9,10,7,8,11,12);
   menu.navButtons(UP_BUTTON_PIN,DOWN_BUTTON_PIN,LEFT_BUTTON_PIN,RIGHT_BUTTON_PIN,ESCAPE_BUTTON_PIN,CONFIRM_BUTTON_PIN);
-
   //create a user define screen callback to activate after 7 secs since last button push 
-  menu.addUsrScreen(msc,7000);
+  menu.addUsrScreen(msc,10000);
   }
 
 void loop(){

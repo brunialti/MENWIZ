@@ -42,39 +42,39 @@
 #define MAX_OPTXMENU   5    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 #define MAX_BUFFER     84   //dimension=columns x rows + rows. CHANGE IT IF LCD IS BIGGER THAN 4X20 CHARS
 
+// VALUE TYPES
+// ---------------------------------------------------------------------------
+#define MW_LIST        11  //OPTION LIST
+#define MW_BOOLEAN     12  //ON/OFF TOGGLE
+#define MW_AUTO_INT    13  //INTEGER VALUE WITH INCREMENT STEP
+#define MW_AUTO_FLOAT  14  //FLOATING POINT VALUE WITH INCREMENT STEP
+#define MW_AUTO_BYTE   15  //byte VALUE WITH INCREMENT STEP
+#define MW_TEXT        16  //not implemented yet
+#define MW_ACTION      17  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
+#define MW_EDIT_INT    18  //not implemented yet
+#define MW_EDIT_FLOAT  19  //not implemented yet
+
 // NODE TYPES 
 // ---------------------------------------------------------------------------
-#define MW_ROOT        10  //root menu
-#define MW_SUBMENU     11  //submenu
-#define MW_VAR         12  //terminal node
+#define MW_ROOT        20  //root menu
+#define MW_SUBMENU     21  //submenu
+#define MW_VAR         22  //terminal node
 
 // CUR MODE
 // ---------------------------------------------------------------------------
-#define MW_MODE_SPLASH     20  
-#define MW_MODE_USRSCREEN  21  
-#define MW_MODE_MENU       22  
+#define MW_MODE_SPLASH     30  
+#define MW_MODE_USRSCREEN  31  
+#define MW_MODE_MENU       32  
 
 // BUTTON CODES
 // ---------------------------------------------------------------------------
-#define MW_BTNULL      30   //NOBUTTON
-#define MW_BTU         31   //UP
-#define MW_BTD         32   //DOWN
-#define MW_BTL         33   //RIGTH
-#define MW_BTR         34   //LEFT
-#define MW_BTE         35   //ESCAPE
-#define MW_BTC         36   //CONFIRM
-
-// VALUE TYPES
-// ---------------------------------------------------------------------------
-#define MW_LIST        41  //OPTION LIST
-#define MW_BOOLEAN     42  //ON/OFF TOGGLE
-#define MW_AUTO_INT    43  //INTEGER VALUE WITH INCREMENT STEP
-#define MW_AUTO_FLOAT  44  //FLOATING POINT VALUE WITH INCREMENT STEP
-#define MW_AUTO_BYTE   45  //byte VALUE WITH INCREMENT STEP
-#define MW_TEXT        46  //not implemented yet
-#define MW_ACTION      47  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
-#define MW_EDIT_INT    48  //not implemented yet
-#define MW_EDIT_FLOAT  49  //not implemented yet
+#define MW_BTNULL      0   //NOBUTTON
+#define MW_BTU         2   //UP
+#define MW_BTD         3   //DOWN
+#define MW_BTL         4   //RIGTH
+#define MW_BTR         5   //LEFT
+#define MW_BTE         6   //ESCAPE
+#define MW_BTC         7   //CONFIRM
 
 // DEREFERENCING OPERATORS
 // ---------------------------------------------------------------------------
@@ -93,7 +93,8 @@
 // OTHERS
 // ---------------------------------------------------------------------------
 #define MW_EOL_CHAR    0x0A
-#define MW_TYPE byte
+#define MW_TYPE uint8_t
+//#define MW_TYPE int
 #define MW_4BTN 0
 #define MW_6BTN 1
 
@@ -136,12 +137,12 @@ public:
 class _menu{
 public:
            _menu();
-  void     addVar(int, int*);
-  void     addVar(int, int*, int, int, int);
-  void     addVar(int, float*, float, float, float);
-  void     addVar(int, byte *,byte ,byte ,byte);
-  void     addVar(int, boolean *);
-  void     addVar(int, void (*f)());
+  void     addVar(MW_TYPE, int*);
+  void     addVar(MW_TYPE, int*, int, int, int);
+  void     addVar(MW_TYPE, float*, float, float, float);
+  void     addVar(MW_TYPE, byte*,byte ,byte ,byte);
+  void     addVar(MW_TYPE, boolean*);
+  void     addVar(MW_TYPE, void (*f)());
   _option* addItem(int, char*);
 
   MW_TYPE  type;
@@ -152,6 +153,7 @@ public:
   byte     cur_item;
   byte     idx_o;    //option index
   void*    o[MAX_OPTXMENU];
+  int      totopt; //tmp
 private:
 protected:
 };
