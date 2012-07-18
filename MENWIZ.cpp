@@ -595,9 +595,18 @@ void menwiz::actBTC(){
       }
     }
   else if(cur_menu->type==MW_VAR){
+    if(cur_menu->var->type==MW_AUTO_INT){        
+      VINT(cur_menu->var->old)=VINT(cur_menu->var->val);}
+    else if(cur_menu->var->type==MW_AUTO_FLOAT){        
+      VFLOAT(cur_menu->var->old)=VFLOAT(cur_menu->var->val);}
+    else if(cur_menu->var->type==MW_AUTO_BYTE){        
+      VBYTE(cur_menu->var->old)=VBYTE(cur_menu->var->val);}
+    else if(cur_menu->var->type==MW_BOOLEAN){        
+      VBOOL(cur_menu->var->old)=VBOOL(cur_menu->var->val);}
+    else if(cur_menu->var->type==MW_ACTION){        
+      cur_menu->var->action();}
     cur_menu=&m[cur_menu->parent];
-    MW_invar=false;
-    }
+    MW_invar=false;    }
   }
 
 int menwiz::getErrorMessage(boolean fl){
