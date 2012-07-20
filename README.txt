@@ -1,6 +1,6 @@
 MENWIZ: YET ANOTHER CHARACTER LCD MENU WIZARD LIBRARY
 
-This library implement menu creation with simple and compact code.
+This library implement LCD menu creation with simple and compact code.
 
 The pros are:
 - (near) asynchronous: that is the library does not take mu control while working, usefull if your sketch need to work while you are changing the settings
@@ -10,21 +10,19 @@ The pros are:
 - you can run a user-defined action (callback routine) from inside the menu
 - user defined variables binding: when you set a value inside a menu, the value is changed also in the binded variable available to the sketch code
 - the user can overload the built-in  "6 buttons" navigation mode, implementing its own navigation callback (TO BE FULLY TESTED) 
+- EEPROM support to save and load variables from EEPROM non volatile mamory; it is possible to disable EEPROM support
 
 Warnings
 - MENWIZ requires New LiquidCrystal (*) and Buttons libraries, enclosed with the package. The New LiquidCrystal allows to use 4 wires, 8 wires, I2C, serial and other LCDs. The use of New LiquidCrystal is beyond this introduction
-- Menu labels require memory. Be carefull not to run out of  memory (the library provides a simple memory-check function: use it!)
 - the examples are done for 20x4 I2C LCD. other interfaces and screen dimensions can be used accordingly with New LiquidCrystal interface (changing mode/interface does not affect library code, but only sketch code) 
+- starting from 0.6.0 version, due to the EEPROM support, the sketch must include the file EEPROM.h
 
 The MENWIZ library is avalable at:
-gethub.com/brunialti/MENWIZ.git
+http://github.com/brunialti/MENWIZ.git
 
 Any feed back is welcome. Should you be interested I can mantain and expand.
 Keep in mind that I want to keep it simple.
 
-Next steps are:
-- new data types
-- code inspection and cleaning
 
 The version number convention is as following:
 <version>.<subversion>.<build>

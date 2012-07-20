@@ -32,20 +32,24 @@
 // GLOBAL VARIABLES
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
-char buf[81];
-const char MW_ver[]={"0.5.3"};
+char *buf;
+const char MW_ver[]={"0.6.0"};
 const char MW_FMT_VARINT[]={"%d [%d] %d"};
 const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
+const uint8_t c1[8]={B00100, B01110, B11111, B00000, B00000, B11111, B01110, B00100}; 
+const uint8_t c2[8]={B00000, B11111, B00000, B00000, B00000, B11111, B01110, B00100}; 
+const uint8_t c3[8]={B00100, B01110, B11111, B00000, B00000, B00000, B11111, B00000}; 
 byte MW_error;
 byte MW_navbtn=0;
 boolean MW_invar=false;
 
-
 menwiz::menwiz(){
+  ERROR(0);
   bitWrite(flags,FL_SPLASH,0);
   bitWrite(flags,FL_SPLASH_DRAW,0);
   bitWrite(flags,FL_USRSCREEN_DRAW,0);
+  //  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
   usrScreen.fl=false;
   usrNav.fl=false;
   btx->last_button=MW_BTU;
@@ -61,25 +65,25 @@ _menu::_menu(){
   cur_item=0;
   label=NULL;
   parent=NULL;
-  totopt=0;
 }
 
 _option::_option(){
   label=NULL;
-}
+  }
 
 _menu * menwiz::addMenu(int t,_menu * p, char *lab){
-   _option *op;
+  static _option *op;
 
   ERROR(0);   
   if ((idx_m==0)&&(t!=MW_ROOT)){
     ERROR(200);
     return NULL;
     }
+  flags=0;
   //INSTANTIATE NEW MENU VARIABLES
   if (idx_m<MAX_MENU){   
     m[idx_m].type=(MW_TYPE)t;         // ROOT| SUBMENU| VAR
-    SCREATE(m[idx_m].label,(char *)lab);      // OPT:STORE STRING BY REFERENCE, NOT BY VALUE?
+    SCREATE(m[idx_m].label,(MW_LABEL)lab);      // OPT:STORE STRING BY REFERENCE, NOT BY VALUE?
     m[idx_m].cod=idx_m;      // unique menu id
     if (t==MW_ROOT){
       //IF ROOT, PARENT=ITSELF, SET ROOT POINTER, SET ROOT AS START MENU 
@@ -90,8 +94,23 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
     else{
       //IF NOT ROOT, ADD MENU TO THE PARENTS OPLIST 
       m[idx_m].parent=p->cod;
-      op=p->addItem(t,(char *)lab);
-      op->sbm=idx_m;
+//===============
+//    op=p->addItem(t,(char *)lab);
+//    op->sbm=idx_m;
+      if (m[p->cod].idx_o<MAX_OPTXMENU){
+        op=(_option *) malloc(sizeof(_option));
+        if(op==NULL){
+          ERROR(900);
+          }
+        else {
+	  op->sbm=idx_m;
+          op->type=(MW_TYPE)t;
+          m[p->cod].o[m[p->cod].idx_o]=(_option*)op;
+          m[p->cod].idx_o++;
+          }
+        }
+      else{ERROR(105);}
+//===============
       }
     idx_m++;
     return &m[idx_m-1];
@@ -101,7 +120,6 @@ _menu * menwiz::addMenu(int t,_menu * p, char *lab){
     return NULL;}
 // ERROR    
    }
-
 
 _option *_menu::addItem(int t,char *lab){
   static _option *op=NULL;
@@ -119,12 +137,13 @@ _option *_menu::addItem(int t,char *lab){
       idx_o++;
       }
     }
-  else{ERROR(105);}
+  else{
 // ERROR
-   totopt++;
-   Serial.print(label);Serial.print(":");Serial.print(lab);Serial.print(".");Serial.println(totopt);
-   return op;
-   } 
+   ERROR(105);
+   return NULL;
+   }
+ return op;
+ } 
 
 void _menu::addVar(MW_TYPE t, int* v){
 
@@ -136,6 +155,7 @@ void _menu::addVar(MW_TYPE t, int* v){
     ERROR(120);
   else if(type==MW_VAR){
     var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    bitWrite(flags,MW_SCROLL_HORIZONTAL,false);   
     var->type=MW_LIST;
     var->val=v;
     cur_item=VBYTE(v);
@@ -211,7 +231,6 @@ void _menu::addVar(MW_TYPE t, boolean* v){
     }
   else{ERROR(110);}
 // ERROR    
-Serial.print("bool type=");Serial.println(t);
   }
 
 void  _menu::addVar(MW_TYPE t,void (*f)()){
@@ -220,13 +239,13 @@ void  _menu::addVar(MW_TYPE t,void (*f)()){
   if (t!=MW_ACTION)
     ERROR(120);
   else if(type==MW_VAR){
+    bitWrite(flags,MW_ACTION_CONFIRM,true);   
     var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
     var->type=MW_ACTION;
     var->action=f;
     }
   else{ERROR(110);}
 // ERROR    
-Serial.print("action type=");Serial.println(t);
   }
 
 void menwiz::addUsrNav(int (*f)()){
@@ -245,11 +264,12 @@ void menwiz::begin(void *l,int c, int r){
   lcd->begin(c,r);  // Size of the LCD
   lcd->setBacklight(HIGH);
   lcd->noCursor();
-  lcd->createChar(0,(uint8_t*)c0);
-//  sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
-//  buf=(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
-//  bitWrite(flags,FL_USRSCREEN_DRAW,0);
-//  bitWrite(flags,FL_SPLASH_DRAW,0);
+  lcd->createChar(1,(uint8_t*)c0);
+  lcd->createChar(2,(uint8_t*)c1);
+  lcd->createChar(3,(uint8_t*)c2);
+  lcd->createChar(4,(uint8_t*)c3);
+  sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
+  buf =(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
   }
 
 char* menwiz::getVer(){
@@ -257,7 +277,6 @@ char* menwiz::getVer(){
   ERROR(0);
   return (char*) MW_ver; 
   }
-
 
 void menwiz::drawUsrScreen(char *scr){
   int i,j,k;
@@ -331,7 +350,7 @@ void menwiz::drawMenu(_menu *mc){
 
   ERROR(0);
   lcd->setCursor(0,0);
-  SFORM(buf,(char*)mc->label,(int) col);
+  SFORM(buf,mc->label,(int) col);
 
   if (mc->type==MW_VAR){
     drawVar(mc);
@@ -344,7 +363,9 @@ void menwiz::drawMenu(_menu *mc){
         op=(_option*)mc->o[j];
         lcd->setCursor(0,i);
         lcd->write((j==mc->cur_item)?126:165);
-        SFORM(buf,op->label,(int) col-1);
+//============
+        SFORM(buf,m[op->sbm].label,(int) col-1);
+//============
         }
       else{
         lcd->setCursor(0,i);
@@ -363,20 +384,32 @@ void menwiz::drawVar(_menu *mc){
   t=(MW_TYPE)(mc->var)->type;
   switch ((mc->var)->type){
     case MW_LIST:
-      rstart=max(0,mc->cur_item-(row-2));
-      rstop=min((mc->idx_o),rstart+(row));
-      for (i=1,j=rstart;i<row;i++,j++){// for all remaining lcd rows
-        if(j<rstop){
-          op=(_option*)mc->o[j];
-          lcd->setCursor(0,i);
-          lcd->write((j==mc->cur_item)?0:165);
-          SFORM(buf,op->label,col-1);
+      if(bitRead(mc->flags,MW_SCROLL_HORIZONTAL)){
+        lcd->setCursor(0,1);
+        op=(_option*)mc->o[mc->cur_item];
+	sprintf(sbuf,"[%s]",op->label);
+        SFORM(buf,sbuf,col);
+        for(i=2;i<row;i++){
+           lcd->setCursor(0,i);
+           FILLBLANK(buf,col);
+	   }
+	}
+      else{
+        rstart=max(0,mc->cur_item-(row-2));
+        rstop=min((mc->idx_o),rstart+(row));
+        for (i=1,j=rstart;i<row;i++,j++){// for all remaining lcd rows
+          if(j<rstop){
+            op=(_option*)mc->o[j];
+            lcd->setCursor(0,i);
+            lcd->write((j==mc->cur_item)?0:165);
+            SFORM(buf,op->label,col-1);
+            }
+          else{
+            lcd->setCursor(0,i);
+            FILLBLANK(buf,col);
+            }
           }
-        else{
-          lcd->setCursor(0,i);
-          FILLBLANK(buf,col);
-          }
-        }
+        } 
       break;  
     case MW_AUTO_INT:
     case MW_AUTO_BYTE:
@@ -402,8 +435,7 @@ void menwiz::drawVar(_menu *mc){
       lcd->print(dtostrf(VFLOAT(mc->var->val),0,MW_FLOAT_DEC,buf));
       lcd->print(F("] "));
       lcd->print(dtostrf(VFLOAT(mc->var->upper),0,MW_FLOAT_DEC,buf));
-      break;Serial.println("ACTION");
-
+      break;
     case MW_BOOLEAN:
       for(i=2;i<row;i++){
         lcd->setCursor(0,i);
@@ -426,7 +458,6 @@ void menwiz::drawVar(_menu *mc){
   }
 
 void menwiz::addSplash(char *s, int lap){
-
   ERROR(0);
   strcpy(sbuf,s);
   tm_splash=lap;
@@ -435,7 +466,6 @@ void menwiz::addSplash(char *s, int lap){
   }
 
 void menwiz::addUsrScreen(void f(), unsigned long t){
-
   ERROR(0);
   usrScreen.fv=f;
   usrScreen.fl=true;
@@ -443,7 +473,6 @@ void menwiz::addUsrScreen(void f(), unsigned long t){
   }
 
 void menwiz::navButtons(int btu,int btd,int bte,int btc){
-  
   ERROR(0);
   btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){ERROR(900); return;}
 
@@ -461,7 +490,6 @@ void menwiz::navButtons(int btu,int btd,int bte,int btc){
   }
 
 void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
-  
   ERROR(0);
   btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){ERROR(900); return;}
   if(btu!=0){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
@@ -591,7 +619,14 @@ void menwiz::actBTC(){
     VINT(cur_menu->var->val)=cur_menu->cur_item;
     cur_menu=&m[oc->sbm];
     if((cur_menu->type==MW_VAR)){
-      MW_invar=true;
+      if((cur_menu->var->type==MW_ACTION) && (!bitRead(cur_menu->flags,MW_ACTION_CONFIRM))){
+        cur_menu->var->action();
+	cur_menu=&m[cur_menu->parent];
+	MW_invar=false;
+        return;
+   	}
+      else
+      	MW_invar=true;
       }
     }
   else if(cur_menu->type==MW_VAR){
@@ -603,10 +638,11 @@ void menwiz::actBTC(){
       VBYTE(cur_menu->var->old)=VBYTE(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_BOOLEAN){        
       VBOOL(cur_menu->var->old)=VBOOL(cur_menu->var->val);}
-    else if(cur_menu->var->type==MW_ACTION){        
+    else if((cur_menu->var->type==MW_ACTION)&&(bitRead(flags,MW_ACTION_CONFIRM))){
       cur_menu->var->action();}
     cur_menu=&m[cur_menu->parent];
-    MW_invar=false;    }
+    MW_invar=false;
+    }
   }
 
 int menwiz::getErrorMessage(boolean fl){
@@ -620,6 +656,7 @@ int menwiz::getErrorMessage(boolean fl){
       case 110: Serial.println(F("E110-MW_VAR menu type required"));break; 
       case 120: Serial.println(F("E120-Bad 1st arg"));break; 
       case 300: Serial.println(F("E300-undefined variable type"));break; 
+      case 310: Serial.println(F("E310-unknown behaviour"));break; 
       case 900: Serial.println(F("E900-Out of memory"));break; 
       default:  Serial.println(F("E000-Unknown err"));break; 
       }
@@ -627,9 +664,101 @@ int menwiz::getErrorMessage(boolean fl){
   return MW_error;
   }
 
+void _menu::setBehaviour(MW_FLAGS b, boolean v){
+  ERROR(0);
+  bitWrite(flags,b,v);
+  }
+
 int menwiz::freeRam () {
   extern int __heap_start, *__brkval; 
   int v; 
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
   }
+
+#ifdef EEPROM_SUPPORT
+void  menwiz::writeEeprom(){
+  int addr=0;
+  for (int i=0;i<idx_m;i++){
+    if(m[i].type==MW_VAR){
+      if(m[i].var->type==MW_BOOLEAN){
+	    EByte temp;
+	    temp.b = VBOOL(m[i].var->val);
+	    EEPROM.write(addr, temp.bytes[0]);
+//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VBOOL(m[i].var->val));
+	    addr++;
+	    }
+      else if(m[i].var->type==MW_AUTO_FLOAT){
+	    EFloat temp;
+	    temp.f = VFLOAT(m[i].var->val);
+	    for (int i=0; i<4; i++) {
+	      EEPROM.write(addr +i, temp.bytes[i]);
+	      }
+//	    Serial.print(F("write to EEPROM:"));Serial.println(dtostrf(VFLOAT(m[i].var->val),0,MW_FLOAT_DEC,buf));
+	    addr=addr+4;
+	    }
+      else if(m[i].var->type==MW_AUTO_INT){
+	    EInt temp;
+	    temp.i = VINT(m[i].var->val);
+	    for (int i=0; i<2; i++) {
+	      EEPROM.write(addr +i, temp.bytes[i]);
+	      }    
+//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VINT(m[i].var->val));
+	    addr=addr+2;
+	    }
+      else if(m[i].var->type==MW_AUTO_BYTE){ 
+	    EByte temp;
+	    temp.b = VBYTE(m[i].var->val);
+	    EEPROM.write(addr, temp.bytes[0]);
+//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VBYTE(m[i].var->val));
+	    addr++;
+	    }
+       }
+     }
+  }
+
+void  menwiz::readEeprom(){
+  int addr=0;
+  for (int i=0;i<idx_m;i++){
+    if(m[i].type==MW_VAR){
+	  if (m[i].var->type==MW_BOOLEAN){
+	    EByte temp;
+	    temp.bytes[0] = EEPROM.read(addr);
+	    VBOOL(m[i].var->val)=temp.b;
+	    VBOOL(m[i].var->old)=VBOOL(m->var->val);
+//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VBYTE(m[i].var->old));
+	    addr++;
+	    }
+	  else if(m[i].var->type==MW_AUTO_FLOAT){
+	    EFloat temp;
+	    for (int n=0; n<4; n++) {
+	     temp.bytes[n] = EEPROM.read(addr+n);
+	     }
+	    VFLOAT(m[i].var->val)=temp.f;
+	    VFLOAT(m[i].var->old)=VFLOAT(m[i].var->val);
+//	    Serial.print(F("read from EEPROM:"));Serial.println(dtostrf(VFLOAT(m[i].var->val),0,MW_FLOAT_DEC,buf));
+	    addr=addr+4;
+	    }
+	  else if(m[i].var->type==MW_AUTO_INT){
+	    EInt temp;
+	    for (int n=0; n<2; n++) {
+	     temp.bytes[n] = EEPROM.read(addr+n);
+	     }
+	    VINT(m[i].var->val)=temp.i;
+	    VINT(m[i].var->old)=VINT(m[i].var->val);
+//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VINT(m[i].var->old));
+	    addr=addr+2;
+	    }
+	  else if(m[i].var->type==MW_AUTO_BYTE){
+	    EByte temp;
+	    temp.bytes[0] = EEPROM.read(addr);
+	    VBYTE(m[i].var->val)=temp.b;
+	    VBYTE(m[i].var->old)=VBYTE(m->var->val);
+//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VBYTE(m[i].var->old));
+	    addr++;
+	    }
+      }
+    }
+  }
+
+#endif
 

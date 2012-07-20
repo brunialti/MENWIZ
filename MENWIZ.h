@@ -26,6 +26,8 @@
 #ifndef MENWIZ_h
 #define MENWIZ_h
 
+#define EEPROM_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
+
 #include <Wire.h>
 #include <LCD.h>
 #include <buttons.h>
@@ -36,10 +38,15 @@
   #include <WProgram.h>
 #endif 
 
+#ifdef EEPROM_SUPPORT
+  #include <EEPROM.h>
+  extern EEPROMClass EEPROM;
+#endif
+
 // DIMENSIONS (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
-#define MAX_MENU       15   //maximum number of nodes (absolute supported max number of addMenu calls)
-#define MAX_OPTXMENU   5    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
+#define MAX_MENU       12   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_OPTXMENU   4    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 #define MAX_BUFFER     84   //dimension=columns x rows + rows. CHANGE IT IF LCD IS BIGGER THAN 4X20 CHARS
 
 // VALUE TYPES
@@ -84,17 +91,23 @@
 #define VFLOAT(a)   *(float*)a
 #define VFUNC(a)    (* a)
 
-// FLAGS
+// FLAGS CLASS MENWIZ
 // ---------------------------------------------------------------------------
 #define FL_SPLASH 		1   		
 #define FL_SPLASH_DRAW		2 	
 #define FL_USRSCREEN_DRAW 	3  	
 
+// BEHAVIOUR MODE FLAG BIT
+// ---------------------------------------------------------------------------
+#define MW_SCROLL_HORIZONTAL 	1  //Vertical/Horizontal mode
+#define MW_ACTION_CONFIRM 	2  //Confirm/no confirm action mode
+
 // OTHERS
 // ---------------------------------------------------------------------------
 #define MW_EOL_CHAR    0x0A
 #define MW_TYPE uint8_t
-//#define MW_TYPE int
+#define MW_LABEL char*
+#define MW_FLAGS uint8_t
 #define MW_4BTN 0
 #define MW_6BTN 1
 
@@ -130,7 +143,7 @@ public:
            _option();
 
   MW_TYPE  type;
-  char*    label;
+  MW_LABEL label;
   byte     sbm;  //submemu id if type=SUBMENU
 };
 
@@ -143,17 +156,18 @@ public:
   void     addVar(MW_TYPE, byte*,byte ,byte ,byte);
   void     addVar(MW_TYPE, boolean*);
   void     addVar(MW_TYPE, void (*f)());
+  void     setBehaviour(MW_FLAGS,boolean);
   _option* addItem(int, char*);
 
   MW_TYPE  type;
+  MW_FLAGS flags;
+  MW_LABEL label;
   _var     *var;
-  char*    label;
   byte     cod;
   byte     parent;
   byte     cur_item;
   byte     idx_o;    //option index
   void*    o[MAX_OPTXMENU];
-  int      totopt; //tmp
 private:
 protected:
 };
@@ -173,9 +187,9 @@ public:
   int      getErrorMessage(boolean); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      freeRam();
   char*    getVer();
-  byte     flags;
-  LCD *    lcd;
-  char     sbuf[MAX_BUFFER];            //lcd screen buffer (+ 1 for each line) 
+  MW_FLAGS flags;
+  LCD*     lcd;
+  char*    sbuf;                        //lcd screen buffer (+ 1 for each line) 
   unsigned long tm_start;       	//start time (set when begin method is invocated)
   unsigned long tm_splash;      	//splash screen duration  
   unsigned long tm_usrScreen;   	//lap time before usrscreen  
@@ -186,6 +200,11 @@ public:
   _menu*   cur_menu;
   _menu*   root;
   _nav*    btx;
+  void     apply2vars(void (*f)(_menu *));
+#ifdef EEPROM_SUPPORT
+  void     writeEeprom();
+  void     readEeprom();
+#endif
 private:
   byte     row;
   byte     col;
@@ -202,6 +221,22 @@ private:
   void     actBTC();
 protected:
 };
+
+   union EFloat{
+      float f;
+      byte bytes[4];};
+	 
+   union EInt{
+      int i;
+      byte bytes[2];};
+
+   union EBool{
+      boolean b;
+      byte bytes[1];};
+	 
+   union EByte{
+      byte b;
+      byte bytes[1];};
 
 #endif
 

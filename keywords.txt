@@ -23,6 +23,9 @@ addUsrScreen KEYWORD2
 getVer KEYWORD2
 addUsrNav KEYWORD2
 drawUsrScreen KEYWORD2
+setBehaviour KEYWORD2
+loadEeprom KEYWORD2
+saveEeprom KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
@@ -35,5 +38,5 @@ MW_AUTO_INT LITERAL1
 MW_AUTO_BYTE LITERAL1
 MW_AUTO_FLOAT LITERAL1
 MW_ACTION LITERAL1
-MW_FLOAT_DEC
+MW_FLOAT_DEC LITERAL1
 
