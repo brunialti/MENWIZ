@@ -33,13 +33,10 @@
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
 char *buf;
-const char MW_ver[]={"0.6.0"};
+const char MW_ver[]={"0.6.1"};
 const char MW_FMT_VARINT[]={"%d [%d] %d"};
 const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
-const uint8_t c1[8]={B00100, B01110, B11111, B00000, B00000, B11111, B01110, B00100}; 
-const uint8_t c2[8]={B00000, B11111, B00000, B00000, B00000, B11111, B01110, B00100}; 
-const uint8_t c3[8]={B00100, B01110, B11111, B00000, B00000, B00000, B11111, B00000}; 
 byte MW_error;
 byte MW_navbtn=0;
 boolean MW_invar=false;
@@ -264,10 +261,7 @@ void menwiz::begin(void *l,int c, int r){
   lcd->begin(c,r);  // Size of the LCD
   lcd->setBacklight(HIGH);
   lcd->noCursor();
-  lcd->createChar(1,(uint8_t*)c0);
-  lcd->createChar(2,(uint8_t*)c1);
-  lcd->createChar(3,(uint8_t*)c2);
-  lcd->createChar(4,(uint8_t*)c3);
+  lcd->createChar(0,(uint8_t*)c0);
   sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
   buf =(char*)malloc(c+1); if(buf==NULL) ERROR(900);  
   }
@@ -678,87 +672,136 @@ int menwiz::freeRam () {
 #ifdef EEPROM_SUPPORT
 void  menwiz::writeEeprom(){
   int addr=0;
+
+  ERROR(0);
   for (int i=0;i<idx_m;i++){
     if(m[i].type==MW_VAR){
-      if(m[i].var->type==MW_BOOLEAN){
-	    EByte temp;
-	    temp.b = VBOOL(m[i].var->val);
-	    EEPROM.write(addr, temp.bytes[0]);
-//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VBOOL(m[i].var->val));
-	    addr++;
-	    }
-      else if(m[i].var->type==MW_AUTO_FLOAT){
-	    EFloat temp;
-	    temp.f = VFLOAT(m[i].var->val);
-	    for (int i=0; i<4; i++) {
-	      EEPROM.write(addr +i, temp.bytes[i]);
-	      }
-//	    Serial.print(F("write to EEPROM:"));Serial.println(dtostrf(VFLOAT(m[i].var->val),0,MW_FLOAT_DEC,buf));
-	    addr=addr+4;
-	    }
-      else if(m[i].var->type==MW_AUTO_INT){
-	    EInt temp;
-	    temp.i = VINT(m[i].var->val);
-	    for (int i=0; i<2; i++) {
-	      EEPROM.write(addr +i, temp.bytes[i]);
-	      }    
-//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VINT(m[i].var->val));
-	    addr=addr+2;
-	    }
-      else if(m[i].var->type==MW_AUTO_BYTE){ 
-	    EByte temp;
-	    temp.b = VBYTE(m[i].var->val);
-	    EEPROM.write(addr, temp.bytes[0]);
-//	    Serial.print(F("write to EEPROM:"));Serial.println((int)VBYTE(m[i].var->val));
-	    addr++;
-	    }
+	switch(m[i].var->type){
+	    case MW_AUTO_BYTE:
+		    {
+		    EByte temp;
+		    temp.b = VBYTE(m[i].var->val);
+		    EEPROM.write(addr, temp.bytes[0]);
+		    Serial.print(F("write to EEPROM:"));Serial.println((int)temp.b);
+		    addr++;
+                    }
+		    break;
+	    case MW_BOOLEAN:
+		    {
+		    EBool temp;
+		    temp.b = VBOOL(m[i].var->val);
+		    EEPROM.write(addr, temp.bytes[0]);
+		    Serial.print(F("write to EEPROM:"));Serial.println((int)temp.b);
+		    addr++;
+                    }
+		    break;
+	    case MW_AUTO_FLOAT:
+		    {
+		    EFloat temp;
+		    temp.f = VFLOAT(m[i].var->val);
+		    for (int i=0; i<4; i++) {
+		      EEPROM.write(addr +i, temp.bytes[i]);
+		      }
+		    Serial.print(F("write to EEPROM:"));Serial.println(dtostrf(temp.f,0,MW_FLOAT_DEC,buf));
+		    addr=addr+4;
+                    }
+		    break;
+	    case MW_LIST:
+		    {
+		    EInt temp;
+		    temp.i = (int)m[i].cur_item;
+		    for (int i=0; i<2; i++) {
+		      EEPROM.write(addr +i, temp.bytes[i]);
+		      }    
+		    Serial.print(F("write to EEPROM:"));Serial.println((int)temp.i);
+		    addr=addr+2;
+                    }
+	   	    break;
+	    case MW_AUTO_INT:
+		    {
+		    EInt temp;
+		    temp.i = VINT(m[i].var->val);
+		    for (int i=0; i<2; i++) {
+		      EEPROM.write(addr +i, temp.bytes[i]);
+		      }    
+		    Serial.print(F("write to EEPROM:"));Serial.println((int)temp.i);
+		    addr=addr+2;
+                    }
+	   	    break;
+	 }
        }
      }
-  }
+   }
 
 void  menwiz::readEeprom(){
   int addr=0;
+
+  ERROR(0);
   for (int i=0;i<idx_m;i++){
     if(m[i].type==MW_VAR){
-	  if (m[i].var->type==MW_BOOLEAN){
-	    EByte temp;
-	    temp.bytes[0] = EEPROM.read(addr);
-	    VBOOL(m[i].var->val)=temp.b;
-	    VBOOL(m[i].var->old)=VBOOL(m->var->val);
-//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VBYTE(m[i].var->old));
-	    addr++;
-	    }
-	  else if(m[i].var->type==MW_AUTO_FLOAT){
-	    EFloat temp;
-	    for (int n=0; n<4; n++) {
-	     temp.bytes[n] = EEPROM.read(addr+n);
-	     }
-	    VFLOAT(m[i].var->val)=temp.f;
-	    VFLOAT(m[i].var->old)=VFLOAT(m[i].var->val);
-//	    Serial.print(F("read from EEPROM:"));Serial.println(dtostrf(VFLOAT(m[i].var->val),0,MW_FLOAT_DEC,buf));
-	    addr=addr+4;
-	    }
-	  else if(m[i].var->type==MW_AUTO_INT){
-	    EInt temp;
-	    for (int n=0; n<2; n++) {
-	     temp.bytes[n] = EEPROM.read(addr+n);
-	     }
-	    VINT(m[i].var->val)=temp.i;
-	    VINT(m[i].var->old)=VINT(m[i].var->val);
-//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VINT(m[i].var->old));
-	    addr=addr+2;
-	    }
-	  else if(m[i].var->type==MW_AUTO_BYTE){
-	    EByte temp;
-	    temp.bytes[0] = EEPROM.read(addr);
-	    VBYTE(m[i].var->val)=temp.b;
-	    VBYTE(m[i].var->old)=VBYTE(m->var->val);
-//	    Serial.print(F("read from EEPROM:"));Serial.println((int)VBYTE(m[i].var->old));
-	    addr++;
-	    }
-      }
-    }
-  }
+	switch(m[i].var->type){
+	    case MW_AUTO_BYTE:
+		    {
+		    EByte temp;
+		    temp.bytes[0] = EEPROM.read(addr);
+		    VBYTE(m[i].var->val)=temp.b;
+		    VBYTE(m[i].var->old)=VBYTE(m->var->val);
+		    Serial.print(F("read from EEPROM:"));Serial.println((int)VBYTE(m[i].var->old));
+		    addr++;
+                    }
+		    break;
+	    case MW_BOOLEAN:
+		    {
+		    EBool temp;
+		    temp.bytes[0] = EEPROM.read(addr);
+		    VBOOL(m[i].var->val)=temp.b;
+		    VBOOL(m[i].var->old)=VBOOL(m->var->val);
+		    Serial.print(F("read from EEPROM:"));Serial.println((int)VBOOL(m[i].var->old));
+		    addr++;
+                    }
+		    break;
+	    case MW_AUTO_FLOAT:
+		    {
+		    EFloat temp;
+		    for (int n=0; n<4; n++) {
+		     temp.bytes[n] = EEPROM.read(addr+n);
+		     }
+		    VFLOAT(m[i].var->val)=temp.f;
+		    VFLOAT(m[i].var->old)=VFLOAT(m[i].var->val);
+		    Serial.print(F("read from EEPROM:"));Serial.println(dtostrf(VFLOAT(m[i].var->val),0,MW_FLOAT_DEC,buf));
+		    addr=addr+4;
+                    }
+		    break;
+	    case MW_AUTO_INT:
+		    {
+		    EInt temp;
+		    for (int n=0; n<2; n++) {
+		     temp.bytes[n] = EEPROM.read(addr+n);
+		     }
+		    VINT(m[i].var->val)=temp.i;
+		    VINT(m[i].var->old)=VINT(m[i].var->val);
+		    Serial.print(F("read from EEPROM:"));Serial.println((int)VINT(m[i].var->old));
+		    addr=addr+2;
+                    }
+		    break;
+	    case MW_LIST:
+		    {
+		    EInt temp;
+		    for (int n=0; n<2; n++) {
+		     temp.bytes[n] = EEPROM.read(addr+n);
+		     }
+		    VINT(m[i].var->val)=temp.i;
+		    VINT(m[i].var->old)=VINT(m[i].var->val);
+		    m[i].cur_item=(byte) temp.i;
+		    Serial.print(F("read from EEPROM:"));Serial.println((int)VINT(m[i].var->old));
+		    addr=addr+2;
+                    }
+		    break;
+	 }
+       }
+     }
+   }
 
 #endif
+
 

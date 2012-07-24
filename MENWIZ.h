@@ -45,8 +45,8 @@
 
 // DIMENSIONS (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
-#define MAX_MENU       12   //maximum number of nodes (absolute supported max number of addMenu calls)
-#define MAX_OPTXMENU   4    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
+#define MAX_MENU       15   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_OPTXMENU   5    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 #define MAX_BUFFER     84   //dimension=columns x rows + rows. CHANGE IT IF LCD IS BIGGER THAN 4X20 CHARS
 
 // VALUE TYPES
