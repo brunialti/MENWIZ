@@ -24,6 +24,9 @@ Latest version V 1.0.0 (July 28 2012):
 - menu objects behaviours
 - Quick tour user manual 
 
+BACKWARD COMPATIBILITY: addMenu and addItams now requires F() operator for 
+strings, read manual!
+ 
 Warnings:
 
 - MENWIZ requires New LiquidCrystal (*) and Buttons libraries, enclosed with
