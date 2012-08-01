@@ -34,7 +34,7 @@
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
 static char *buf;
-const char MW_ver[]={"1.0 b"};
+const char MW_ver[]={"1.0.1"};
 const char MW_FMT_VARINT[]={"%d [%d] %d"};
 const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
@@ -366,7 +366,7 @@ void menwiz::drawMenu(_menu *mc){
         FSFORM(buf,m[op->sbm].label,(int) col-1);
         }
       else{
-        BLANKLINE(buf,row,col);
+        BLANKLINE(buf,i,col);
         }
       }
     }    
@@ -551,38 +551,67 @@ int menwiz::scanNavButtons(){
   }
 
 int menwiz::actNavButtons(int button){  
+int b;
 
   ERROR(0);
-  if (button==MW_BTNULL) 
-    return(button);
-  else{
+  if (button==MW_BTNULL){ 
     last_button=button;
-    tm_push=millis();
+    return(button);
+    }
+  else{
     switch(button){
       case MW_BTU: 
         if (MW_navbtn==6){ 
-	  actBTU();}
+	  b=MW_BTU;
+          actBTU();
+          }
         else{	  
           if(MW_invar){
-             actBTR();}
-          else
-            actBTU();}
+            b=MW_BTR;
+            actBTR();
+            }
+          else{
+            b=MW_BTU;
+            actBTU();
+            }
+          }
         break;   
       case MW_BTD:
         if (MW_navbtn==6){ 
-	  actBTD();}
+          b=MW_BTD;
+	  actBTD();
+          }
         else{
 	  if(MW_invar){
-             actBTL();}
-          else
-             actBTD();}  
+            b=MW_BTL;
+            actBTL();
+            }
+          else{
+            b=MW_BTD;
+            actBTD();
+            }
+          }  
         break; 
-      case MW_BTL: actBTL();  break; 
-      case MW_BTR: actBTR();  break; 
-      case MW_BTE: actBTE();  break; 
-      case MW_BTC: actBTC();  break; 
+      case MW_BTL: 
+        b=MW_BTL;
+        actBTL();  
+        break; 
+      case MW_BTR: 
+        b=MW_BTR;
+        actBTR();  
+        break; 
+      case MW_BTE: 
+        b=MW_BTE;
+        actBTE();  
+        break; 
+      case MW_BTC: 
+        b=MW_BTC;
+        actBTC();  
+        break; 
       }
     }
+    last_button=b;
+    tm_push=millis();
   }
 
 void menwiz::actBTU(){ 
@@ -668,7 +697,7 @@ void menwiz::actBTC(){
       VBYTE(cur_menu->var->old)=VBYTE(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_BOOLEAN){        
       VBOOL(cur_menu->var->old)=VBOOL(cur_menu->var->val);}
-    else if((cur_menu->var->type==MW_ACTION)&&(bitRead(flags,MW_ACTION_CONFIRM))){
+    else if((cur_menu->var->type==MW_ACTION)&&(bitRead(cur_menu->flags,MW_ACTION_CONFIRM))){
       cur_menu->var->action();}
     cur_menu=&m[cur_menu->parent];
     MW_invar=false;
