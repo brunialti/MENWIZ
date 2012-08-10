@@ -29,7 +29,7 @@ KNOWN LIMITATIONS AND BUGS
 The method addUsrNav in 1.0.1 version supports the 6 buttons model only.
 It could work improperly with 4 buttons.
 With release 1.0.1 if you want to use addUsrNav with "4 buttons" you can patch 
-the sketch code as following 
+the sketch code as following:
 
 extern byte MW_navbtn; // let available the MENWIZ internal variable 
 ...
