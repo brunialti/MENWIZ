@@ -26,18 +26,18 @@ Latest version V 1.0.1 (July 28 2012):
 
 KNOWN LIMITATIONS AND BUGS
 
-The method addUsrNav allows only to replace the 6 buttons model, that is the
-actions performed are those expected by the 6 buttons model.
-The next release of addUsrNav release will allows to explicitly set the replaced 
-model (4 or 6 buttons mode).
-With release 1.0.1 if you want to use addUsrNav you can patch with the following 
-lines in the sketch code
+The method addUsrNav in 1.0.1 version supports the 6 buttons model only.
+It could work improperly with 4 buttons.
+With release 1.0.1 if you want to use addUsrNav with "4 buttons" you can patch 
+the sketch code as following 
 
-extern byte MW_navbtn;
+extern byte MW_navbtn; // let available the MENWIZ internal variable 
 ...
-// in setup() after addusrnav call
+// in setup() *after* addusrnav call insert the following line
 MW_navbtn=4;  // force 4 buttons mode
 
+The next version will change addUsrNav with explicit declaration of user 
+implemented buttons.
 
 BACKWARD COMPATIBILITY: addMenu and addItams now requires F() operator for 
 strings, read manual!
