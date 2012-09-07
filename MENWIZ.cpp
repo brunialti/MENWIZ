@@ -9,7 +9,7 @@
 // Thread Safe: No
 // Extendable: Yes
 // 
-// @file MENWIZ.cpp
+// @file MENWIZ.cpp 
 // This file implements a basic menu management library in the Arduino SDK
 // 
 // @brief 
@@ -34,7 +34,7 @@
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
 static char *buf;
-const char MW_ver[]={"1.0.1"};
+const char MW_ver[]={"1.0.2"};
 const char MW_FMT_VARINT[]={"%d [%d] %d"};
 const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
@@ -636,8 +636,10 @@ void menwiz::actBTL(){
     VFLOAT(cur_menu->var->val)=max((VFLOAT(cur_menu->var->val)-VFLOAT(cur_menu->var->incr)),VFLOAT(cur_menu->var->lower));}    
   else if(cur_menu->var->type==MW_BOOLEAN){
     VBOOL(cur_menu->var->val)=!VBOOL(cur_menu->var->val);}    
-  else if((cur_menu->var->type==MW_LIST)&& MW_invar)    
+  else if((cur_menu->var->type==MW_LIST)&& MW_invar){    
     cur_menu->cur_item=(cur_menu->cur_item+1)%(cur_menu->idx_o);
+//    VINT(cur_menu->var->val)=cur_menu->cur_item;
+    }
   }
 
 void menwiz::actBTR(){ 
@@ -650,8 +652,10 @@ void menwiz::actBTR(){
     VFLOAT(cur_menu->var->val)=min((VFLOAT(cur_menu->var->val)+VFLOAT(cur_menu->var->incr)),VFLOAT(cur_menu->var->upper));}    
   else if(cur_menu->var->type==MW_BOOLEAN){
     VBOOL(cur_menu->var->val)=!VBOOL(cur_menu->var->val);}    
-  else if((cur_menu->var->type==MW_LIST)&&MW_invar)    
+  else if((cur_menu->var->type==MW_LIST)&&MW_invar){    
     cur_menu->cur_item=(cur_menu->cur_item-1)<0?(cur_menu->idx_o-1):cur_menu->cur_item-1;
+//    VINT(cur_menu->var->val)=cur_menu->cur_item;
+    }
   }
 
 void menwiz::actBTE(){ 
@@ -689,7 +693,9 @@ void menwiz::actBTC(){
       }
     }
   else if(cur_menu->type==MW_VAR){
-    if(cur_menu->var->type==MW_AUTO_INT){        
+    if(cur_menu->var->type==MW_LIST){        
+      VINT(cur_menu->var->val)=cur_menu->cur_item;}
+    else if(cur_menu->var->type==MW_AUTO_INT){        
       VINT(cur_menu->var->old)=VINT(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_AUTO_FLOAT){        
       VFLOAT(cur_menu->var->old)=VFLOAT(cur_menu->var->val);}
