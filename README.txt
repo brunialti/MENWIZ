@@ -1,6 +1,6 @@
 MENWIZ: YET ANOTHER CHARACTER LCD MENU GENERATOR LIBRARY
 
-Latest version V 1.0.0 (July 28 2012):
+Latest version V 1.0.1 (July 28 2012):
 
 - (near) asynchronous: the library does not take mu control while working; 
   this is usefull if your sketch need to work while you are using menus
@@ -23,6 +23,21 @@ Latest version V 1.0.0 (July 28 2012):
   (starting from V 1.0).
 - menu objects behaviours
 - Quick tour user manual 
+
+KNOWN LIMITATIONS AND BUGS
+
+The method addUsrNav in 1.0.1 version supports the 6 buttons model only.
+It could work improperly with 4 buttons.
+With release 1.0.1 if you want to use addUsrNav with "4 buttons" you can patch 
+the sketch code as following:
+
+extern byte MW_navbtn; // let available the MENWIZ internal variable 
+...
+// in setup() *after* addusrnav call insert the following line
+MW_navbtn=4;  // force 4 buttons mode
+
+The next version will change addUsrNav with explicit declaration of user 
+implemented buttons.
 
 BACKWARD COMPATIBILITY: addMenu and addItams now requires F() operator for 
 strings, read manual!
