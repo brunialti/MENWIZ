@@ -55,7 +55,8 @@ Warnings:
   include the file EEPROM.h (until you disable the EEPROM support)
 
 The MENWIZ library is avalable at:
-https://github.com/brunialti/MENWIZ/downloads
+https://github.com/brunialti/MENWIZ
+You can download all the stuff as ZIP file
 
 Please visit also the following forum topic:
 http://arduino.cc/forum/index.php/topic,99693.msg866553.html#new
