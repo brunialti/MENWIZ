@@ -9,7 +9,7 @@
 // Thread Safe: No
 // Extendable: Yes
 // 
-// @file MENWIZ.h  
+// @file MENWIZ.h
 // This file implements a basic menu management library in the Arduino SDK
 // 
 // @brief
@@ -45,26 +45,26 @@
 
 // DIMENSIONS (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
-#define MAX_MENU       15   //maximum number of nodes (absolute supported max number of addMenu calls)
-#define MAX_OPTXMENU   5    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
+#define MAX_MENU       	15   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_OPTXMENU   	9    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 
 // VALUE TYPES
 // ---------------------------------------------------------------------------
-#define MW_LIST        11  //OPTION LIST
-#define MW_BOOLEAN     12  //ON/OFF TOGGLE
-#define MW_AUTO_INT    13  //INTEGER VALUE WITH INCREMENT STEP
-#define MW_AUTO_FLOAT  14  //FLOATING POINT VALUE WITH INCREMENT STEP
-#define MW_AUTO_BYTE   15  //byte VALUE WITH INCREMENT STEP
-#define MW_TEXT        16  //not implemented yet
-#define MW_ACTION      17  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
-#define MW_EDIT_INT    18  //not implemented yet
-#define MW_EDIT_FLOAT  19  //not implemented yet
+#define MW_LIST         11  //OPTION LIST
+#define MW_BOOLEAN     	12  //ON/OFF TOGGLE
+#define MW_AUTO_INT    	13  //INTEGER VALUE WITH INCREMENT STEP
+#define MW_AUTO_FLOAT  	14  //FLOATING POINT VALUE WITH INCREMENT STEP
+#define MW_AUTO_BYTE   	15  //byte VALUE WITH INCREMENT STEP
+#define MW_TEXT        	16  //not implemented yet
+#define MW_ACTION      	17  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
+#define MW_EDIT_INT    	18  //not implemented yet
+#define MW_EDIT_FLOAT  	19  //not implemented yet
 
 // NODE TYPES 
 // ---------------------------------------------------------------------------
-#define MW_ROOT        20  //root menu
-#define MW_SUBMENU     21  //submenu
-#define MW_VAR         22  //terminal node
+#define MW_ROOT        	20  //root menu
+#define MW_SUBMENU     	21  //submenu
+#define MW_VAR         	22  //terminal node
 
 // CUR MODE
 // ---------------------------------------------------------------------------
@@ -102,15 +102,18 @@
 #define MW_ACTION_CONFIRM 	1  //Confirm/no confirm action mode
 #define MW_LIST_2COLUMNS        2
 #define MW_LIST_3COLUMNS        3
+#define MW_MENU_COLLAPSED	4
+
 
 // OTHERS
 // ---------------------------------------------------------------------------
 #define MW_EOL_CHAR    0x0A
-#define MW_TYPE uint8_t
-#define MW_LABEL const __FlashStringHelper*  
-#define MW_FLAGS uint8_t
-#define MW_4BTN 0
-#define MW_6BTN 1
+#define MW_TYPE        uint8_t
+#define MW_LCD         LCD   // this could help to change the library: your lcd data type
+#define MW_LABEL       const __FlashStringHelper*  
+#define MW_FLAGS       uint8_t
+#define MW_4BTN        0
+#define MW_6BTN        1
 
 typedef struct{
   boolean fl;
@@ -177,7 +180,7 @@ public:
   void     begin(void *,int, int);
   void     addSplash(char *,int);
   void     addUsrScreen(void (*f)(), unsigned long);
-  void     addUsrNav(int (*f)());
+  void     addUsrNav(int (*f)(), int);
   _menu*   addMenu(int, _menu *, MW_LABEL);
   void     draw();
   void     navButtons(int,int,int,int,int,int);
@@ -192,7 +195,7 @@ public:
 #endif
 
   MW_FLAGS flags;
-  LCD*     lcd;
+  MW_LCD*  lcd;
   char*    sbuf;                        //lcd screen buffer (+ 1 for each line) 
   _cback   usrScreen;	        	//callback
   _cback   usrNav;    

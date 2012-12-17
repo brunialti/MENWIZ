@@ -1,7 +1,7 @@
 MENWIZ: YET ANOTHER CHARACTER LCD MENU GENERATOR LIBRARY
 
-Latest version V 1.0.1 (July 28 2012):
 
+DESCRIPTION
 - (near) asynchronous: the library does not take mu control while working; 
   this is usefull if your sketch need to work while you are using menus
 - simple to use (compact and simple code, ortogonal interface)
@@ -15,32 +15,33 @@ Latest version V 1.0.1 (July 28 2012):
   menu object, whenever a value is changed inside the menus, the program 
   has direct access to that value via its own (binded) variable  
 - built in 6-buttons and 4-buttons modes; the user can overload the  built-in
-  mode, implementing its own navigation callback (e.g. 3-buttons mode, analog
-  buttons, rotary encoders etc) 
-- EEPROM support to save and load variables from EEPROM non volatile mamory; 
+  mode, implementing its own navigation callback (e.g. analog buttons, 
+  rotary encoders etc) 
+- EEPROM support to save and load variables to/from EEPROM non volatile mamory; 
   it is possible to disable EEPROM support to spare some memory
 - use of F() operator to store menu strings in progmem to save the heap 
   (starting from V 1.0).
 - menu objects behaviours
 - Quick tour user manual 
 
+WHAT IS NEW IN THE LATEST VERSION
+Latest version: V 1.1.0 (December 17 2012):
+
+- collapsed menu behaviour (a compact way to display menus)
+- reduced footprint: until you do not use sprintf, the library can save 1.5kbyte 
+- changed addUsrMenu call interface
+
 KNOWN LIMITATIONS AND BUGS
 
-The method addUsrNav in 1.0.1 version supports the 6 buttons model only.
-It could work improperly with 4 buttons.
-With release 1.0.1 if you want to use addUsrNav with "4 buttons" you can patch 
-the sketch code as following:
+t.b.d.
 
-extern byte MW_navbtn; // let available the MENWIZ internal variable 
-...
-// in setup() *after* addusrnav call insert the following line
-MW_navbtn=4;  // force 4 buttons mode
+BACKWARD COMPATIBILITY
 
-The next version will change addUsrNav with explicit declaration of user 
-implemented buttons.
+starting from versione 1.1.0 addUsrMenu has 2 args instead of 1. The second arg
+is the number of buttons emulated by the call back function
 
-BACKWARD COMPATIBILITY: addMenu and addItams now requires F() operator for 
-strings, read manual!
+strating from version 1.0.0 addMenu and addItems requires F() operator for 
+strings
  
 Warnings:
 
@@ -55,7 +56,8 @@ Warnings:
   include the file EEPROM.h (until you disable the EEPROM support)
 
 The MENWIZ library is avalable at:
-https://github.com/brunialti/MENWIZ/downloads
+https://github.com/brunialti/MENWIZ/
+download as zip file
 
 Please visit also the following forum topic:
 http://arduino.cc/forum/index.php/topic,99693.msg866553.html#new
