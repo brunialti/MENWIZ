@@ -26,7 +26,8 @@
 
 #define SCREATE(p,s)     p=(char *)malloc(strlen((char *)s)+1); strcpy((char *)p,(char *)s)
 #define SFORM(b,s,l)     memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=NULL; lcd->print(b)
-#define FSFORM(b,s,l)    memset(b,32,l);strcpy_P(b,(const prog_char*)s); b[strlen(b)]=' ';b[l]=NULL; lcd->print(b)
+#define TSFORM(b,s,l)    memset(b,32,l);strcpy_P(b,(const prog_char*)s); b[strlen(b)]=' ';itoa(cur_menu->cur_item+1,tmp,10);strcat(tmp,"/");itoa(cur_menu->idx_o,tmp+strlen(tmp),10);b[col-strlen(tmp)-1]=126;memcpy(b+(col-strlen(tmp)),tmp,strlen(tmp));b[l]=NULL;lcd->print(b)
+#define FSFORM(b,s,l)    memset(b,32,l);strcpy_P(b,(const prog_char*)s);b[strlen(b)]=' ';b[l]=NULL;lcd->print(b)
 #define ERROR(a)         MW_error=a
 #define BLANKLINE(b,r,c) memset(b,32,c);b[c]=NULL; lcd->setCursor(0,r);lcd->print(b)
 
@@ -34,7 +35,8 @@
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
 static char *buf;
-const char MW_ver[]={"1.1.0"};
+const char MW_ver[]={"1.2.0"};
+char tmp[6];
 //const char MW_FMT_VARINT[]={"%d [%d] %d"}; //@
 const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
@@ -51,6 +53,7 @@ menwiz::menwiz(){
   bitWrite(flags,FL_SPLASH,false);
   bitWrite(flags,FL_SPLASH_DRAW,false);
   bitWrite(flags,FL_USRSCREEN_DRAW,false);
+  bitWrite(flags,MW_MENU_INDEX,true);
   usrScreen.fl=false;
   usrNav.fl=false;
   last_button=MW_BTU;
@@ -63,15 +66,17 @@ menwiz::menwiz(){
 
 _menu::_menu(){
 
+  ERROR(0);
   idx_o=0;
   cur_item=0;
   label=NULL;
-  parent=NULL;  bitWrite(flags,FL_USRSCREEN_DRAW,false);
-
+  parent=NULL;  
+  bitWrite(flags,FL_USRSCREEN_DRAW,false);
   }
 
 _option::_option(){
 
+  ERROR(0);
   label=NULL;
   }
 
@@ -83,7 +88,6 @@ static _option *op;
     ERROR(200);
     return NULL;
     }
-  flags=0;
   //INSTANTIATE NEW MENU VARIABLES
   if (idx_m<MAX_MENU){   
     m[idx_m].type=(MW_TYPE)t;         // ROOT| SUBMENU| VAR
@@ -236,7 +240,6 @@ void _menu::addVar(MW_TYPE t, boolean* v){
     var->type=MW_BOOLEAN;
     var->val=v;
     var->old=malloc(sizeof(boolean));  if(var->old!=NULL) VBOOL(var->old)=VBOOL(var->val); else {ERROR(900); return;} 
-    flags=0;
     }
 // ERROR    
   else{ERROR(110);}
@@ -262,6 +265,7 @@ void menwiz::addUsrNav(int (*f)(), int nb){
 
   ERROR(0);
   usrNav.fl=true;
+
   usrNav.fi=f;
 
   if ((nb==4) or (nb==6))
@@ -276,7 +280,6 @@ void menwiz::begin(void *l,int c, int r){
   tm_start=millis();
   row=r;
   col=c;
-  flags=0;
   lcd=(MW_LCD*)l; 
   lcd->begin(c,r);  //  LCD size
   lcd->setBacklight(HIGH);
@@ -285,12 +288,6 @@ void menwiz::begin(void *l,int c, int r){
   lcd->createChar(1,(uint8_t*)c1);
   sbuf=(char*)malloc(r*c+r); if(sbuf==NULL) ERROR(900);
   buf =(char*)malloc(2*c);   if(buf==NULL) ERROR(900);  
-  }
-
-char* menwiz::getVer(){
-
-  ERROR(0);
-  return (char*) MW_ver; 
   }
 
 void menwiz::drawUsrScreen(char *scr){
@@ -321,7 +318,12 @@ void menwiz::draw(){
 
   ERROR(0);
   // get nav choice
-  ret=usrNav.fl?usrNav.fi():scanNavButtons();    	//internal method or user defined callback?
+  #ifdef BUTTON_SUPPORT 
+    ret=usrNav.fl?usrNav.fi():scanNavButtons();    	//internal method or user defined callback?
+  #else
+    ret=usrNav.fi();    				//user defined callback
+  #endif 
+
   // if usrscreen is active, skip last button and switch to MENU mode
   if((cur_mode==MW_MODE_USRSCREEN)&&(ret!=MW_BTNULL)){
     cur_mode=MW_MODE_MENU;
@@ -368,16 +370,25 @@ void menwiz::drawMenu(_menu *mc){
   
   ERROR(0);  
   lcd->setCursor(0,0);
-  FSFORM(buf,mc->label,(int) col);
-
+  
+  if(bitRead(flags,MW_MENU_INDEX)&&
+  ((mc->type==MW_ROOT)||(mc->type==MW_SUBMENU)||(mc->var->type==MW_LIST))){
+    TSFORM(buf,mc->label,(int) col);
+    }
+  else{
+    FSFORM(buf,mc->label,(int) col);
+    }
+  
   if (mc->type==MW_VAR){
     drawVar(mc);
     }
   else{
     rstart=max(0,mc->cur_item-(row-2));
     rstop=min((mc->idx_o),(rstart+row));
+
     for (i=1,j=rstart;i<row;i++,j++){// for all remaining lcd rows
       if(j<rstop){
+        lcd->setCursor(0,i); // POSITION TO LINE TO PRINT
 	if(bitRead(mc->flags,MW_MENU_COLLAPSED)){
 	  op=(_option*)mc->o[j];
 	  mn=&m[op->sbm];
@@ -400,7 +411,6 @@ void menwiz::drawMenu(_menu *mc){
 		break;
 		
 	      case MW_LIST:
-//                strcat(sbuf,":");strcat(sbuf,itoa(mn->cur_item+1,buf,10));strcat(sbuf,"/");strcat(sbuf,itoa(mc->idx_o,buf,10));l=strlen(sbuf);sbuf[l]=1;sbuf[l+1]=0;
                 strcat(sbuf,": ");l=strlen(sbuf);sbuf[l]=1;sbuf[l+1]=0;
 	        break;
 	        
@@ -420,25 +430,32 @@ void menwiz::drawMenu(_menu *mc){
 		break;
 
 	      case MW_ACTION:
+                strcat(sbuf,": ");l=strlen(sbuf);sbuf[l]=1;sbuf[l+1]=0;
 		break;
 	      }
             memset(&sbuf[strlen(sbuf)],32,col-strlen(sbuf));
             sbuf[col]=0;
-	    lcd->setCursor(0,i);
+//	    lcd->setCursor(0,i);
 	    lcd->print(sbuf);
             }
-          }
-        else{
+          else{ // NOT VARS (ROOT OR SUBMENU)
+	    op=(_option*)mc->o[j];
+//	    lcd->setCursor(0,i);
+	    lcd->write((j==mc->cur_item)?126:165);
+	    FSFORM(buf,m[op->sbm].label,(int) col-1);
+	    }
+	  }
+	else{// NOT MENU COLLAPSED
 	  op=(_option*)mc->o[j];
-	  lcd->setCursor(0,i);
+//	  lcd->setCursor(0,i);
 	  lcd->write((j==mc->cur_item)?126:165);
 	  FSFORM(buf,m[op->sbm].label,(int) col-1);
-	  }
+          }
         }
-      else{
+      else{// EMPTY LINE
         BLANKLINE(buf,i,col);
         }
-      }
+      }// NEXT
     }    
   }
 
@@ -563,7 +580,6 @@ void menwiz::addSplash(char *s, int lap){
   strcpy(sbuf,s);
   tm_splash=lap;
   bitWrite(flags,FL_SPLASH,1);
-
   bitWrite(flags,FL_SPLASH_DRAW,0);
   }
 
@@ -575,6 +591,7 @@ void menwiz::addUsrScreen(void f(), unsigned long t){
   tm_usrScreen=t;
   }
 
+#ifdef BUTTON_SUPPORT
 void menwiz::navButtons(int btu,int btd,int bte,int btc){
 
   ERROR(0);
@@ -639,6 +656,7 @@ int menwiz::scanNavButtons(){
   else
     return MW_BTNULL;
   }
+#endif
 
 int menwiz::actNavButtons(int button){  
 int b;
@@ -751,9 +769,6 @@ void menwiz::actBTE(){
 
   last_button=MW_BTE;
 
-// TEMPORARY CODE: behavihour of collapsed menu to be defined....
-//  oc=(_option*)cur_menu->o[cur_menu->cur_item]; 
-//  cm=bitRead(cur_menu->flags,MW_MENU_COLLAPSED)? &m[oc->sbm]:cur_menu;
   cm=cur_menu;
   if(cm->type==MW_VAR){
     if(cm->var->type==MW_AUTO_INT){        
@@ -777,31 +792,40 @@ void menwiz::actBTC(){
   oc=(_option*)cur_menu->o[cur_menu->cur_item]; 
   if((cur_menu->type==MW_SUBMENU)||(cur_menu->type==MW_ROOT)){
 //    VINT(cur_menu->var->val)=cur_menu->cur_item;  //? commented senza sapere perchè ...
+    Serial.println("PASS1");
     cur_menu=&m[oc->sbm];
     if(cur_menu->type==MW_VAR){
+    Serial.println("PASS2");
       if(bitRead(m[cur_menu->parent].flags,MW_MENU_COLLAPSED)){
-	if (cur_menu->var->type!=MW_LIST) {
+    Serial.println("PASS3");
+	if ((cur_menu->var->type!=MW_LIST)&&((cur_menu->var->type!=MW_ACTION))) {
+    Serial.println("PASS4");
 	  cur_menu=&m[cur_menu->parent];
 	  MW_invar=false;
 	  }
 	else{
+    Serial.println("PASS5");
 	  MW_invar=true;	  
 	  }
+    Serial.println("PASS6");
 	return;
         }
       else if((cur_menu->var->type==MW_ACTION) && (!bitRead(cur_menu->flags,MW_ACTION_CONFIRM))){
+      Serial.println("NOT CONFIRMED");
         cur_menu->var->action();
 	cur_menu=&m[cur_menu->parent];
 	MW_invar=false;  
 	return;
 	}
       else{
+    Serial.println("PASS7");
 	MW_invar=true;
   	return;
         }
       }
     } 
   else if(cur_menu->type==MW_VAR){
+    Serial.println("PASS8");
     if(cur_menu->var->type==MW_LIST){        
       VINT(cur_menu->var->val)=cur_menu->cur_item;}
     else if(cur_menu->var->type==MW_AUTO_INT){        
@@ -813,6 +837,7 @@ void menwiz::actBTC(){
     else if(cur_menu->var->type==MW_BOOLEAN){        
       VBOOL(cur_menu->var->old)=VBOOL(cur_menu->var->val);}
     else if((cur_menu->var->type==MW_ACTION)&&(bitRead(cur_menu->flags,MW_ACTION_CONFIRM))){
+      Serial.println("CONFIRMED");
       cur_menu->var->action();}
     cur_menu=&m[cur_menu->parent];
     MW_invar=false;
@@ -842,6 +867,12 @@ int menwiz::getErrorMessage(boolean fl){
   return MW_error;
   }
 
+void menwiz::setBehaviour(MW_FLAGS b, boolean v){
+
+  ERROR(0);  
+  bitWrite(flags,b,v);
+  }
+  
 void _menu::setBehaviour(MW_FLAGS b, boolean v){
 
   ERROR(0);

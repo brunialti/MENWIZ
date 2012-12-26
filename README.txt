@@ -25,11 +25,13 @@ DESCRIPTION
 - Quick tour user manual 
 
 WHAT IS NEW IN THE LATEST VERSION
-Latest version: V 1.1.0 (December 17 2012):
+Latest version: V 1.2.0 (December 26 2012):
 
-- collapsed menu behaviour (a compact way to display menus)
-- reduced footprint: until you do not use sprintf, the library can save 1.5kbyte 
-- changed addUsrMenu call interface
+- Solved few bug occourring when a root menu is declared as collapsed menu in ver 1.1.0 .
+- It is now  possible to disable button.h support in order to save space.
+- New behaviours added:  MW_MENU_INDEX (applies to menwiz objects).
+- The getVer() function is now declared as #define pseudofunction, outside menwiz class.
+
 
 KNOWN LIMITATIONS AND BUGS
 
@@ -37,11 +39,7 @@ t.b.d.
 
 BACKWARD COMPATIBILITY
 
-starting from versione 1.1.0 addUsrMenu has 2 args instead of 1. The second arg
-is the number of buttons emulated by the call back function
-
-strating from version 1.0.0 addMenu and addItems requires F() operator for 
-strings
+Please read the manual (chhaper "MENWIZ changes history")
  
 Warnings:
 
@@ -57,7 +55,8 @@ Warnings:
 
 The MENWIZ library is avalable at:
 https://github.com/brunialti/MENWIZ
-You can download all the stuff as ZIP file
+You can download all the stuff as ZIP file.
+Due to github policy it is not avalilable anymore the /downloads directory
 
 Please visit also the following forum topic:
 http://arduino.cc/forum/index.php/topic,99693.msg866553.html#new

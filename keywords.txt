@@ -28,6 +28,7 @@ drawUsrScreen KEYWORD2
 setBehaviour KEYWORD2
 loadEeprom KEYWORD2
 saveEeprom KEYWORD2
+setBehaviour KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
@@ -46,5 +47,5 @@ MW_ACTION_CONFIRM LITERAL1
 MW_LIST_2COLUMNS LITERAL1
 MW_LIST_3COLUMNS LITERAL1
 MW_MENU_COLLAPSED LITERAL1
-
+MW_MENU_INDEX LITERAL1
 

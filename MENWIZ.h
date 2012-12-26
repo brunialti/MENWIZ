@@ -27,10 +27,14 @@
 #define MENWIZ_h
 
 #define EEPROM_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
+#define BUTTON_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
 
 #include <Wire.h>
 #include <LCD.h>
-#include <buttons.h>
+
+#ifdef BUTTON_SUPPORT 
+  #include <buttons.h>
+#endif
 
 #if (ARDUINO >= 100)
   #include <Arduino.h> 
@@ -42,6 +46,9 @@
   #include <EEPROM.h>
   extern EEPROMClass EEPROM;
 #endif
+
+#define getVer()         (char*) MW_ver
+extern const char MW_ver[];
 
 // DIMENSIONS (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
@@ -92,11 +99,12 @@
 
 // FLAGS CLASS MENWIZ
 // ---------------------------------------------------------------------------
-#define FL_SPLASH 		1   		
-#define FL_SPLASH_DRAW		2 	
-#define FL_USRSCREEN_DRAW 	3  	
+#define FL_SPLASH 		0   		
+#define FL_SPLASH_DRAW		1 	
+#define FL_USRSCREEN_DRAW 	2  	
+#define MW_MENU_INDEX 		3  	
 
-// BEHAVIOUR MODE FLAG BIT
+// FLAGS CLASS _MENU 
 // ---------------------------------------------------------------------------
 #define MW_SCROLL_HORIZONTAL 	0  //Vertical/Horizontal mode
 #define MW_ACTION_CONFIRM 	1  //Confirm/no confirm action mode
@@ -121,6 +129,7 @@ typedef struct{
   int  (*fi)();
 }_cback;
 
+#ifdef BUTTON_SUPPORT
 typedef struct{
   Button    BTU;   
   Button    BTD;   
@@ -129,6 +138,7 @@ typedef struct{
   Button    BTE;   
   Button    BTC;   
 }_nav;
+#endif
 
 typedef struct{
   MW_TYPE  type;
@@ -181,17 +191,23 @@ public:
   void     addSplash(char *,int);
   void     addUsrScreen(void (*f)(), unsigned long);
   void     addUsrNav(int (*f)(), int);
+  void     setBehaviour(MW_FLAGS,boolean);
   _menu*   addMenu(int, _menu *, MW_LABEL);
   void     draw();
-  void     navButtons(int,int,int,int,int,int);
-  void     navButtons(int,int,int,int);
   void     drawUsrScreen(char *);       //draw user screen(s)
   int      getErrorMessage(boolean); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      freeRam();
-  char*    getVer();
+
 #ifdef EEPROM_SUPPORT
   void     writeEeprom();
   void     readEeprom();
+#endif
+
+#ifdef BUTTON_SUPPORT 
+  _nav*    btx;
+  void     navButtons(int,int,int,int,int,int);
+  void     navButtons(int,int,int,int);
+  int      scanNavButtons();
 #endif
 
   MW_FLAGS flags;
@@ -203,7 +219,6 @@ public:
   _menu    m[MAX_MENU];
   _menu*   cur_menu;
   _menu*   root;
-  _nav*    btx;
 private:
   byte     row;
   byte     col;
@@ -214,7 +229,6 @@ private:
   unsigned long tm_splash;      	//splash screen duration  
   unsigned long tm_usrScreen;   	//lap time before usrscreen  
   void     apply2vars(void (*f)(_menu *));
-  int      scanNavButtons();
   int      actNavButtons(int);
   void     drawMenu(_menu *);
   void     drawVar(_menu *);
@@ -233,7 +247,8 @@ union Etype{
   byte b;
   int i;
   float f;
-  byte bytes[4];};
+  byte bytes[4];
+};
 
 #endif
 

@@ -38,11 +38,12 @@ void setup(){
   
   // inizialize the menu object (20 colums x 4 rows)
   menu.begin(&lcd,20,4);
+  //menu.setBehaviour(MW_MENU_INDEX,false);    
 
   //create the menu tree
   r=menu.addMenu(MW_ROOT,NULL,F("MAIN MENU"));              //create a root menu at first (required)
     s1=menu.addMenu(MW_SUBMENU,r,F("MEASURE SUBMENU"));     //add a child (submenu) node to the root menu
-    s1->setBehaviour(MW_MENU_COLLAPSED,true);          
+    //s1->setBehaviour(MW_MENU_COLLAPSED,true);          
     
       s2=menu.addMenu(MW_VAR,s1,F("list"));            //add a terminal node (that is "variable"); 
           s2->addVar(MW_LIST,&tp);                          //create a variable of type "option list".. 
