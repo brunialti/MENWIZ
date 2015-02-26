@@ -22,16 +22,21 @@ DESCRIPTION
 - use of F() operator to store menu strings in progmem to save the heap 
   (starting from V 1.0).
 - menu objects behaviours
+- create users and assign grants to visualize menu branches
 - Quick tour user manual 
 
 WHAT IS NEW IN THE LATEST VERSION
-Latest version: V 1.2.0 (December 26 2012):
+- UsrScreen will be shown, on cancel, if in menu root
+- switched from boolean to bool
 
-- Solved few bug occourring when a root menu is declared as collapsed menu in ver 1.1.0 .
-- It is now  possible to disable button.h support in order to save space.
-- New behaviours added:  MW_MENU_INDEX (applies to menwiz objects).
-- The getVer() function is now declared as #define pseudofunction, outside menwiz class.
+Latest version: V 1.3.2 (April 29 2014):
 
+- Fixed the option MW_MENU_INDEX bug.
+- It is now possible to set up to 3 users and to set access grant to submenus for each one of   them with the following methods:
+  menwiz::setCurrentUser(int);
+  _menu:: setBehaviour(MW_GRANT_USERx, Boolean);
+- New data type added: the long awaited editable text MW_EDIT_TEXT. It works for now *only*   in “6 buttons mode”. The variable is not buffered, that is any change will take immediate   effect: when you leave the variable editing with exit button, the changes will affect the   original char variable.
+- The method getLastbutton of the class menwiz let available the last pushed button code
 
 KNOWN LIMITATIONS AND BUGS
 
