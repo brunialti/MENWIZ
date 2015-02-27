@@ -56,7 +56,7 @@ menwiz::menwiz(){
   bitWrite(flags,FL_SPLASH_DRAW,false);
   bitWrite(flags,FL_USRSCREEN_DRAW,false);
   bitWrite(flags,MW_MENU_INDEX,true);
-  eeprom_offset=0;
+
   cur_user=MW_GRANT_USER1;
   usrScreen.fl=false;
   usrNav.fl=false;
@@ -66,6 +66,10 @@ menwiz::menwiz(){
   col=0;
   tm_start=0;  
   root=NULL;
+  #ifdef EEPROM_SUPPORT
+    eeprom_offset=0;
+    eeprom_write_on_confirm=false;
+  #endif
 }
 
 _menu::_menu(){
@@ -954,6 +958,9 @@ void menwiz::actBTC(){
       }
 	cur_menu=&m[cur_menu->parent];
     MW_invar=false;
+    #ifdef EEPROM_SUPPORT
+      if (eeprom_write_on_confirm) writeEeprom();
+    #endif
     }
   }
 
@@ -1035,20 +1042,20 @@ void  menwiz::writeEeprom(){
 			switch(((_var*)m[i].var)->type){
 				case MW_AUTO_BYTE:{
 					temp.b = VBYTE(((_var*)m[i].var)->val);
-					EEPROM.write(addr, temp.bytes[0]);
+					EEPROM.update(addr, temp.bytes[0]); //define update in your EEPROM.h and EEPROM.cpp !!!
 					addr++;
 					}
 					break;
 				case MW_BOOL:{
 					temp.bl = VBOOL(((_var*)m[i].var)->val);
-					EEPROM.write(addr, temp.bytes[0]);
+					EEPROM.update(addr, temp.bytes[0]);
 					addr++;
 					}
 					break;
 				case MW_AUTO_FLOAT:{
 					temp.f = VFLOAT(((_var*)m[i].var)->val);
 					for (int i=0; i<4; i++){
-					  EEPROM.write(addr +i, temp.bytes[i]);
+					  EEPROM.update(addr +i, temp.bytes[i]);
 					  }
 					addr=addr+4;
 					}
@@ -1056,7 +1063,7 @@ void  menwiz::writeEeprom(){
 				case MW_LIST:{
 					temp.i = (int)m[i].cur_item;
 					for (int i=0; i<2; i++) {
-					  EEPROM.write(addr +i, temp.bytes[i]);
+					  EEPROM.update(addr +i, temp.bytes[i]);
 					  }    
 					addr=addr+2;
 					}
@@ -1064,7 +1071,7 @@ void  menwiz::writeEeprom(){
 				case MW_AUTO_INT:{
 					temp.i = VINT(((_var*)m[i].var)->val);
 					for (int i=0; i<2; i++) {
-					  EEPROM.write(addr +i, temp.bytes[i]);
+					  EEPROM.update(addr +i, temp.bytes[i]);
 					  }    
 					addr=addr+2;
 					}
@@ -1074,9 +1081,9 @@ void  menwiz::writeEeprom(){
 					char *cp=(char*)((_var*)m[i].var)->val;
 					l=strlen(cp);
 					for (int i=0; i<l; i++) {
-					  EEPROM.write(addr +i, cp[i]);
+					  EEPROM.update(addr +i, cp[i]);
 					  }
-					EEPROM.write(addr +l+1, 0);
+					EEPROM.update(addr +l+1, 0);
 					addr=addr+l+1;
 					}
 					break;
@@ -1159,6 +1166,6 @@ void  menwiz::readEeprom(){
       }
     }
   }
-   
+
 #endif
 

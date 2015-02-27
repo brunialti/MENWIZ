@@ -219,7 +219,8 @@ public:
 #ifdef EEPROM_SUPPORT
   void     writeEeprom();
   void     readEeprom();
-  int      eeprom_offset;
+  bool     eeprom_write_on_confirm;  //true will save the value to eeprom with every confirm
+  int      eeprom_offset;//default at 0
 #endif
 
 #ifdef BUTTON_SUPPORT 
