@@ -303,6 +303,7 @@ void menwiz::addUsrNav(int (*f)(), int nb){
 void menwiz::begin(void *l,int c, int r){
 
   ERROR(0);
+
   tm_start=millis();
   row=r;
   col=c;
@@ -344,7 +345,7 @@ void menwiz::drawUsrScreen(char *scr){
 
 void menwiz::draw(){
   int ret;
-  int long lap1,lap2; 
+  int long lap1,lap2;
 
 //  ERROR(0);
   // get nav choice
@@ -353,17 +354,7 @@ void menwiz::draw(){
   #else
     ret=usrNav.fi();    				            //user defined callback
   #endif 
-  
-    if (ret) {
-     Serial.print(ret);
-     Serial.println(" Button pressed");
-    }
-  if (ret) {
-     Serial.print(cur_mode);
-     Serial.println(" cur_mode");
-     Serial.print(cur_menu->type);
-     Serial.println(" cur_menu->type");
-    }
+
   // ------ SPECIAL CASES START --------
   //ENTER MENU SCREEN IF ANY BUTTON IS PUSHED
   // if a button was pushed while running usrscreen or splash screen , skip last button, switch to MENU mode, draw menu and exit
@@ -725,21 +716,14 @@ void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
   }
 
 int menwiz::scanNavButtons(){ 
-
-  if(btx->BTU.check()==ON){
-    return MW_BTU;}
-  else if (btx->BTD.check()==ON){
-    return MW_BTD;}
-  else if (btx->BTL.check()==ON){
-    return MW_BTL;}
-  else if (btx->BTR.check()==ON){
-    return MW_BTR;}
-  else if (btx->BTE.check()==ON){
-    return MW_BTE;}
-  else if (btx->BTC.check()==ON){
-    return MW_BTC;}
-  else
-    return MW_BTNULL;
+  //Serial.print("menwiz::scanNavButtons()");
+  if (btx->BTU.check()==ON) return MW_BTU;
+  if (btx->BTD.check()==ON) return MW_BTD;
+  if (btx->BTE.check()==ON) return MW_BTE;
+  if (btx->BTC.check()==ON) return MW_BTC;
+  if (MW_navbtn==6 && btx->BTL.check()==ON) return MW_BTL;
+  if (MW_navbtn==6 && btx->BTR.check()==ON) return MW_BTR;
+  return MW_BTNULL;
   }
 #endif
 
