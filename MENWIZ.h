@@ -28,6 +28,7 @@
 
 #define EEPROM_SUPPORT     //comment if you do'nt want to use the readEeprom and writeEeprom methods!
 #define BUTTON_SUPPORT     //comment if you do'nt want to use the Button methods!
+#define MW_PRINT_ERRORS    //comment if you dont want to see errors - NEEDS less programspace
 
 #include <avr/pgmspace.h>
 #include <LiquidCrystal.h>
@@ -212,9 +213,12 @@ public:
   _menu*   addMenu(int, _menu *, MW_LABEL);
   void     draw();
   void     drawUsrScreen(char *);       //draw user screen(s)
-  int      getErrorMessage(bool); 	//if arg=true, err message is printed to the default Serial terminal, otherwise the function returns error code only
   int      getLastbutton(){return last_button;} 
   int      freeRam();
+
+  static int error;
+  static int getErrorMessage(bool); 	//on true, message is printed on Serial. function returns error code
+  static void setError(int err);     //sets the error
 
 #ifdef EEPROM_SUPPORT
   void     writeEeprom();

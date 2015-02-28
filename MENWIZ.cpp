@@ -28,16 +28,15 @@
 #define SFORM(b,s,l)     memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=NULL; lcd->print(b)
 #define TSFORM(b,s,l,c)  memset(b,32,l);strncpy_P(b,(const char PROGMEM*)s, min(col,strlen_P((char PROGMEM*) s))); b[strlen(b)]=' ';itoa(cur_menu->cur_item+1,tmp,10);strcat(tmp,"/");itoa(cur_menu->idx_o,tmp+strlen(tmp),10);b[col-strlen(tmp)-1]=c;memcpy(b+(col-strlen(tmp)),tmp,strlen(tmp));b[l]=NULL;lcd->print(b)
 #define FSFORM(b,s,l)    memset(b,32,l);memcpy_P(b,(const char PROGMEM*)s,min(l,strlen_P((const char PROGMEM*)s)));buf[l]=NULL;lcd->print(b);
-#define ERROR(a)         MW_error=a
 #define BLANKLINE(b,r,c) memset(b,32,c);b[c]=NULL; lcd->setCursor(0,r);lcd->print(b)
+
+
 
 // GLOBAL VARIABLES
 // ---------------------------------------------------------------------------
 const char MW_ver[]={"1.3.2 beta"};
-int        MW_error;
 byte       MW_navbtn=0;
 bool    MW_invar=false;
-//_menu    m[MAX_MENU];
 
 static char *buf;
 char tmp[6];
@@ -51,7 +50,7 @@ const uint8_t c2[8]={B00000, B01010, B11111, B01110, B11111, B01010, B00000, B00
 
 menwiz::menwiz(){
 
-  ERROR(0);
+  setError(0);
   bitWrite(flags,FL_SPLASH,false);
   bitWrite(flags,FL_SPLASH_DRAW,false);
   bitWrite(flags,FL_USRSCREEN_DRAW,false);
@@ -70,10 +69,11 @@ menwiz::menwiz(){
     eeprom_offset=0;
     eeprom_write_on_confirm=false;
   #endif
+
 }
 
 _menu::_menu(){
-  ERROR(0);
+  menwiz::setError(0);
 /*
 initialized in addMenu
 */
@@ -81,16 +81,16 @@ initialized in addMenu
 
 _option::_option(){
 
-  ERROR(0);
+  menwiz::setError(0);
   label=NULL;
   }
 
 _menu * menwiz::addMenu(int t,_menu * p, MW_LABEL lab){
 static _option *op;
 
-  ERROR(0);   
+  menwiz::setError(0);   
   if ((idx_m==0)&&(t!=MW_ROOT)){
-    ERROR(200);
+    menwiz::setError(200);
     return NULL;
     }
   //INITIALIZE NEW MENU VARIABLES
@@ -117,7 +117,7 @@ static _option *op;
       if (m[p->cod].idx_o<MAX_OPTXMENU){
         op=(_option *) malloc(sizeof(_option));
         if(op==NULL){
-          ERROR(900);
+          menwiz::setError(900);
           }
         else{
 	  op->sbm=idx_m;
@@ -126,25 +126,25 @@ static _option *op;
           m[p->cod].idx_o++;
           }
         }
-      else{ERROR(105);}
+      else{menwiz::setError(105);}
       }
     idx_m++;
     return &m[idx_m-1];
     }
   else{
 // ERROR    
-    ERROR(100);
+    menwiz::setError(100);
     return NULL;}
    }
 
 _option *_menu::addItem(int t,MW_LABEL lab){
 static _option *op=NULL;
 
-  ERROR(0);
+  menwiz::setError(0);
   if (idx_o<MAX_OPTXMENU){
     op=(_option *) malloc(sizeof(_option));
     if(op==NULL){
-      ERROR(900);
+      menwiz::setError(900);
       }
     else {
       op->type=(MW_TYPE)t;
@@ -155,7 +155,7 @@ static _option *op=NULL;
     }
   else{
 // ERROR
-   ERROR(105);
+   menwiz::setError(105);
    return NULL;
    }
  return op;
@@ -163,14 +163,14 @@ static _option *op=NULL;
 
 void _menu::addVar(MW_TYPE t, int* v){
 
-  ERROR(0);
+  menwiz::setError(0);
   if(type==MW_ROOT){         //patch to be verified
     type=(MW_TYPE)MW_VAR;    //patch to be verified
     }	
-  if (t!=MW_LIST)
-    ERROR(120);
+  if (t!=MW_LIST) {menwiz::setError(120);}
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    var=(_var*)malloc(sizeof(_var));
+  if(var==NULL){menwiz::setError(900); return;}
     bitWrite(flags,MW_SCROLL_HORIZONTAL,false);   
     bitWrite(flags,MW_LIST_3COLUMNS,false);   
     bitWrite(flags,MW_LIST_2COLUMNS,false);   
@@ -179,130 +179,130 @@ void _menu::addVar(MW_TYPE t, int* v){
     cur_item=VBYTE(v);
     }
 // ERROR    
-  else{ERROR(110);}
+  else{menwiz::setError(110);}
   }
   
 void _menu::addVar(MW_TYPE t, int* v, int low, int up, int incr){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_AUTO_INT)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    var=(_var*)malloc(sizeof(_var));if(var==NULL){menwiz::setError(900); return;}
     ((_var*)var)->type=MW_AUTO_INT;
     ((_var*)var)->val=v;
-    ((_var*)var)->lower=malloc(sizeof(int)); if(((_var*)var)->lower!=NULL) VINT(((_var*)var)->lower)=low; else {ERROR(900); return;}
-    ((_var*)var)->upper=malloc(sizeof(int)); if(((_var*)var)->upper!=NULL) VINT(((_var*)var)->upper)=up; else {ERROR(900); return;}
-    ((_var*)var)->incr=malloc(sizeof(int));  if(((_var*)var)->incr!=NULL) VINT(((_var*)var)->incr)=incr; else {ERROR(900); return;} 
-    ((_var*)var)->old=malloc(sizeof(int));   if(((_var*)var)->old!=NULL) VINT(((_var*)var)->old)=VINT(((_var*)var)->val); else {ERROR(900); return;} 
+    ((_var*)var)->lower=malloc(sizeof(int)); if(((_var*)var)->lower!=NULL) VINT(((_var*)var)->lower)=low; else {menwiz::setError(900); return;}
+    ((_var*)var)->upper=malloc(sizeof(int)); if(((_var*)var)->upper!=NULL) VINT(((_var*)var)->upper)=up; else {menwiz::setError(900); return;}
+    ((_var*)var)->incr=malloc(sizeof(int));  if(((_var*)var)->incr!=NULL) VINT(((_var*)var)->incr)=incr; else {menwiz::setError(900); return;} 
+    ((_var*)var)->old=malloc(sizeof(int));   if(((_var*)var)->old!=NULL) VINT(((_var*)var)->old)=VINT(((_var*)var)->val); else {menwiz::setError(900); return;} 
     }
 // ERROR    
-  else{ERROR(110);}
+  else{menwiz::setError(110);}
   }
 
 void _menu::addVar(MW_TYPE t, float* v, float low, float up, float incr){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_AUTO_FLOAT)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    var=(_var*)malloc(sizeof(_var));if(var==NULL){menwiz::setError(900); return;}
     ((_var*)var)->type=MW_AUTO_FLOAT;
     ((_var*)var)->val=v;
-    ((_var*)var)->lower=malloc(sizeof(float)); if(((_var*)var)->lower!=NULL) VFLOAT(((_var*)var)->lower)=low; else {ERROR(900); return;}
-    ((_var*)var)->upper=malloc(sizeof(float)); if(((_var*)var)->upper!=NULL) VFLOAT(((_var*)var)->upper)=up; else {ERROR(900); return;}
-    ((_var*)var)->incr=malloc(sizeof(float));  if(((_var*)var)->incr!=NULL) VFLOAT(((_var*)var)->incr)=incr; else {ERROR(900); return;} 
-    ((_var*)var)->old=malloc(sizeof(float));   if(((_var*)var)->old!=NULL) VFLOAT(((_var*)var)->old)=VFLOAT(((_var*)var)->val); else {ERROR(900); return;} 
+    ((_var*)var)->lower=malloc(sizeof(float)); if(((_var*)var)->lower!=NULL) VFLOAT(((_var*)var)->lower)=low; else {menwiz::setError(900); return;}
+    ((_var*)var)->upper=malloc(sizeof(float)); if(((_var*)var)->upper!=NULL) VFLOAT(((_var*)var)->upper)=up; else {menwiz::setError(900); return;}
+    ((_var*)var)->incr=malloc(sizeof(float));  if(((_var*)var)->incr!=NULL) VFLOAT(((_var*)var)->incr)=incr; else {menwiz::setError(900); return;} 
+    ((_var*)var)->old=malloc(sizeof(float));   if(((_var*)var)->old!=NULL) VFLOAT(((_var*)var)->old)=VFLOAT(((_var*)var)->val); else {menwiz::setError(900); return;} 
     }
 // ERROR    
-  else{ERROR(110);}
+  else{menwiz::setError(110);}
   }
 
 void _menu::addVar(MW_TYPE t, byte* v, byte low, byte up, byte incr){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_AUTO_BYTE)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    var=(_var*)malloc(sizeof(_var));if(var==NULL){menwiz::setError(900); return;}
     ((_var*)var)->type=MW_AUTO_BYTE;
     ((_var*)var)->val=v;
-    ((_var*)var)->lower=malloc(sizeof(byte)); if(((_var*)var)->lower!=NULL) VBYTE(((_var*)var)->lower)=low; else {ERROR(900); return;}
-    ((_var*)var)->upper=malloc(sizeof(byte)); if(((_var*)var)->upper!=NULL) VBYTE(((_var*)var)->upper)=up; else {ERROR(900); return;}
-    ((_var*)var)->incr=malloc(sizeof(byte));  if(((_var*)var)->incr!=NULL) VBYTE(((_var*)var)->incr)=incr; else {ERROR(900); return;} 
-    ((_var*)var)->old=malloc(sizeof(byte));   if(((_var*)var)->old!=NULL) VBYTE(((_var*)var)->old)=VBYTE(((_var*)var)->val); else {ERROR(900); return;} 
+    ((_var*)var)->lower=malloc(sizeof(byte)); if(((_var*)var)->lower!=NULL) VBYTE(((_var*)var)->lower)=low; else {menwiz::setError(900); return;}
+    ((_var*)var)->upper=malloc(sizeof(byte)); if(((_var*)var)->upper!=NULL) VBYTE(((_var*)var)->upper)=up; else {menwiz::setError(900); return;}
+    ((_var*)var)->incr=malloc(sizeof(byte));  if(((_var*)var)->incr!=NULL) VBYTE(((_var*)var)->incr)=incr; else {menwiz::setError(900); return;} 
+    ((_var*)var)->old=malloc(sizeof(byte));   if(((_var*)var)->old!=NULL) VBYTE(((_var*)var)->old)=VBYTE(((_var*)var)->val); else {menwiz::setError(900); return;} 
     }
 // ERROR    
-  else{ERROR(110);}
+  else{menwiz::setError(110);}
   }
 
 void _menu::addVar(MW_TYPE t, bool* v){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_BOOL)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+    var=(_var*)malloc(sizeof(_var));if(var==NULL){menwiz::setError(900); return;}
     ((_var*)var)->type=MW_BOOL;
     ((_var*)var)->val=v;
-    ((_var*)var)->old=malloc(sizeof(bool));  if(((_var*)var)->old!=NULL) VBOOL(((_var*)var)->old)=VBOOL(((_var*)var)->val); else {ERROR(900); return;} 
+    ((_var*)var)->old=malloc(sizeof(bool));  if(((_var*)var)->old!=NULL) VBOOL(((_var*)var)->old)=VBOOL(((_var*)var)->val); else {menwiz::setError(900); return;} 
     }
-// ERROR    
-  else{ERROR(110);}
+// menwiz::setError    
+  else{menwiz::setError(110);}
   }
 
 void _menu::addVar(MW_TYPE t,char *s){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_EDIT_TEXT)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
-    var=(_var*)malloc(sizeof(_var)); if(var==NULL){ERROR(320); return;}
+    var=(_var*)malloc(sizeof(_var)); if(var==NULL){menwiz::setError(320); return;}
     ((_var*)var)->type=MW_EDIT_TEXT;
     ((_var*)var)->val=s;
     }
-// ERROR    
-  else{ERROR(110);}
+// menwiz::setError    
+  else{menwiz::setError(110);}
   }
 
 void  _menu::addVar(MW_TYPE t,void (*f)()){
 
-  ERROR(0);
+  menwiz::setError(0);
   if (t!=MW_ACTION)
-    ERROR(120);
+    menwiz::setError(120);
   else if(type==MW_VAR){
     bitWrite(flags,MW_ACTION_CONFIRM,true);   
-    var=(_act*)malloc(sizeof(_act));if(var==NULL){ERROR(900); return;}
+    var=(_act*)malloc(sizeof(_act));if(var==NULL){menwiz::setError(900); return;}
     ((_act*)var)->type=MW_ACTION;
     ((_act*)var)->action=f;
     }
 // ERROR    
-  else{ERROR(110);}
+  else{menwiz::setError(110);}
   }
 
 void menwiz::setCurrentUser(int u){
 
-  ERROR(0);
+  setError(0);
   if((u>=MW_GRANT_USER1)&&(u<=MW_GRANT_USER3))
      cur_user=u;
   else
-     ERROR(500);
+     setError(500);
   }
 
 void menwiz::addUsrNav(int (*f)(), int nb){
 
-  ERROR(0);
+  setError(0);
   usrNav.fl=true;
   usrNav.fi=f;
   if ((nb==4) or (nb==6))
      MW_navbtn=nb;
   else     
-     ERROR(130);
+     setError(130);
   }
 
 void menwiz::begin(void *l,int c, int r){
 
-  ERROR(0);
+  setError(0);
 
   tm_start=millis();
   row=r;
@@ -315,15 +315,15 @@ void menwiz::begin(void *l,int c, int r){
   lcd->createChar(0,(uint8_t*)c0);
   lcd->createChar(1,(uint8_t*)c1);
   lcd->createChar(2,(uint8_t*)c2);
-  sbuf=(char*)malloc(r*c+r+1); if(sbuf==NULL) ERROR(900);
+  sbuf=(char*)malloc(r*c+r+1); if(sbuf==NULL) setError(900);
   memset(sbuf,' ',r*c+r);sbuf[r*c+r]=0;
-  buf =(char*)malloc(c+1);   if(buf==NULL) ERROR(900);  
+  buf =(char*)malloc(c+1);   if(buf==NULL) setError(900);  
   memset(buf,' ',c);buf[c]=0;
   }
 
 void menwiz::drawUsrScreen(char *scr){
 
-  ERROR(0);
+  setError(0);
   int start=0, cur=0;
   lcd->noBlink();
   for(int i=0;i<row;i++){
@@ -347,7 +347,7 @@ void menwiz::draw(){
   int ret;
   int long lap1,lap2;
 
-//  ERROR(0);
+//  setError(0);
   // get nav choice
   #ifdef BUTTON_SUPPORT 
     ret=usrNav.fl?usrNav.fi():scanNavButtons();    	//internal method or user defined callback?
@@ -409,7 +409,7 @@ void menwiz::drawMenu(_menu *mc){
   _menu   *mn;
   byte top,fl=0;
   
-//  ERROR(0);  
+//  setError(0);  
   lcd->setCursor(0,0);
   // DRAW THE FIRST LINE 
   
@@ -526,7 +526,7 @@ void menwiz::drawVar(_menu *mc){
   MW_TYPE t;
   _option *op;
 
-//  ERROR(0);
+//  setError(0);
   t=(MW_TYPE)((_var*)mc->var)->type;
   switch (((_var*)mc->var)->type){
     case MW_LIST:
@@ -624,14 +624,14 @@ void menwiz::drawVar(_menu *mc){
       lcd->setCursor(mc->cur_item+1,1);
       break;
     default:
-      ERROR(300);
+      setError(300);
     }
   }
 
 void menwiz::drawList(_menu *mc, int nc){
   int nr=row-1; int cw=col/nc;
 
-//   ERROR(0);
+//   setError(0);
    for(int i=0;i<(row*nc-nc);i++){
       int pc=i/nr; int pr=i%nr+1;
       lcd->setCursor(pc*cw,pr);
@@ -650,7 +650,7 @@ void menwiz::drawList(_menu *mc, int nc){
 void menwiz::addSplash(char *s, int lap){
 int l;
   
-  ERROR(0);
+  setError(0);
   l=min(row*col+row,strlen(s));
   strncpy(sbuf,s,l);
   sbuf[l]=0; 
@@ -661,7 +661,7 @@ int l;
 
 void menwiz::addUsrScreen(void f(), unsigned long t){
 
-  ERROR(0);
+  setError(0);
   usrScreen.fv=f;
   usrScreen.fl=true;
   tm_usrScreen=t;
@@ -670,8 +670,8 @@ void menwiz::addUsrScreen(void f(), unsigned long t){
 #ifdef BUTTON_SUPPORT
 void menwiz::navButtons(int btu,int btd,int bte,int btc){
 
-  ERROR(0);
-  btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){ERROR(900); return;}
+  setError(0);
+  btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){setError(900); return;}
 
   if(btu!=0){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
   if(btd!=0){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
@@ -688,15 +688,15 @@ void menwiz::navButtons(int btu,int btd,int bte,int btc){
   for(int i=0;i<idx_m;i++){
     if (bitRead(m[i].flags,MW_MENU_COLLAPSED)){
       bitWrite(m[i].flags,MW_MENU_COLLAPSED,false);
-      ERROR(410);
+      setError(410);
       }
     }
   }
 
 void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
 
-  ERROR(0);
-  btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){ERROR(900); return;}
+  setError(0);
+  btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){setError(900); return;}
   if(btu!=0){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
   if(btd!=0){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
   if(btl!=0){btx->BTL.assign(btl);  btx->BTL.setMode(OneShot);  btx->BTL.turnOnPullUp();} 
@@ -730,7 +730,7 @@ int menwiz::scanNavButtons(){
 int menwiz::actNavButtons(int button){  
 int b;
 
-  ERROR(0);
+  setError(0);
   if (button==MW_BTNULL){ 
     last_button=button;
     return(button);
@@ -948,10 +948,17 @@ void menwiz::actBTC(){
     }
   }
 
+int menwiz::error = 0;
+void menwiz::setError(int err){
+  error = err;
+#ifdef MW_PRINT_ERRORS
+  getErrorMessage(true);
+#endif
+}
 int menwiz::getErrorMessage(bool fl){
-/*
+#ifdef MW_PRINT_ERRORS
   if (fl){
-    switch(MW_error){
+    switch(error){
       case 0:   break; 
       case 100: Serial.println(F("E100-Too many items. Increment MAX_MENU"));break; 
       case 130: Serial.println(F("E130-Invalid buttons number: allowed 4 or 6"));break; 
@@ -968,20 +975,22 @@ int menwiz::getErrorMessage(bool fl){
       default:  Serial.println(F("E000-Unknown err"));break; 
       }
     }
-*/
-  if (fl){Serial.print(F("ERROR:"));Serial.println(MW_error);}
-  return MW_error;
+#else
+  if (fl){Serial.print(F("ERROR:"));Serial.println(error);}
+#endif
+
+  return error;
   }
 
 void menwiz::setBehaviour(MW_FLAGS b, bool v){
 
-  ERROR(0);  
+  setError(0);  
   bitWrite(flags,b,v);
   }
   
 void _menu::setBehaviour(MW_FLAGS b, bool v){
 
-  ERROR(0);
+  menwiz::setError(0);
   bitWrite(flags,b,v);
   if(v&&(b==MW_SCROLL_HORIZONTAL)){
      bitWrite(flags,MW_LIST_2COLUMNS,false);
@@ -1020,7 +1029,7 @@ void  menwiz::writeEeprom(){
   Etype temp;
   int addr=eeprom_offset;
 
-  ERROR(0);
+  setError(0);
   for (int i=0;i<idx_m;i++){
 		if(m[i].type==MW_VAR){
 			switch(((_var*)m[i].var)->type){
@@ -1082,7 +1091,7 @@ void  menwiz::readEeprom(){
   Etype temp;
   int addr=eeprom_offset;
 
-  ERROR(0);
+  setError(0);
   for (int i=0;i<idx_m;i++){
     if(m[i].type==MW_VAR){
 	switch(((_var*)m[i].var)->type){
