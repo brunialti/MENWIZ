@@ -94,10 +94,6 @@ static _option *op;
     return NULL;
     }
   //INITIALIZE NEW MENU VARIABLES
-  Serial.print("Menu init nr: ");
-  Serial.print(idx_m);
-  Serial.print("of type: ");
-  Serial.println(t);
   if (idx_m<MAX_MENU){   
     m[idx_m].type=(MW_TYPE)t;   // ROOT| SUBMENU| VAR
     m[idx_m].label=lab;
