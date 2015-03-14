@@ -53,7 +53,7 @@ extern const char MW_ver[];
 
 // SIZES (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
-#define MAX_MENU       	30   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_MENU       	50   //maximum number of nodes (absolute supported max number of addMenu calls)
 #define MAX_OPTXMENU   	10    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 
 // OTHER SIZES 
@@ -210,7 +210,7 @@ public:
   void     addUsrNav(int (*f)(), int);
   void     setBehaviour(MW_FLAGS,bool);
   void     setCurrentUser(int);
-  _menu*   addMenu(int, _menu *, MW_LABEL);
+  _menu*   addMenu(MW_TYPE, _menu *, MW_LABEL);
   void     draw();
   void     drawUsrScreen(char *);       //draw user screen(s)
   int      getLastbutton(){return last_button;} 

@@ -85,7 +85,7 @@ _option::_option(){
   label=NULL;
   }
 
-_menu * menwiz::addMenu(int t,_menu * p, MW_LABEL lab){
+_menu * menwiz::addMenu(MW_TYPE t,_menu * p, MW_LABEL lab){
 static _option *op;
 
   menwiz::setError(0);   
@@ -94,6 +94,10 @@ static _option *op;
     return NULL;
     }
   //INITIALIZE NEW MENU VARIABLES
+  Serial.print("Menu init nr: ");
+  Serial.print(idx_m);
+  Serial.print("of type: ");
+  Serial.println(t);
   if (idx_m<MAX_MENU){   
     m[idx_m].type=(MW_TYPE)t;   // ROOT| SUBMENU| VAR
     m[idx_m].label=lab;
@@ -170,12 +174,13 @@ void _menu::addVar(MW_TYPE t, int* v){
   if (t!=MW_LIST) {menwiz::setError(120);}
   else if(type==MW_VAR){
     var=(_var*)malloc(sizeof(_var));
-  if(var==NULL){menwiz::setError(900); return;}
+    if(var==NULL){menwiz::setError(900); return;}
     bitWrite(flags,MW_SCROLL_HORIZONTAL,false);   
     bitWrite(flags,MW_LIST_3COLUMNS,false);   
     bitWrite(flags,MW_LIST_2COLUMNS,false);   
     ((_var*)var)->type=MW_LIST;
     ((_var*)var)->val=v;
+    ((_var*)var)->old=v;
     cur_item=VBYTE(v);
     }
 // ERROR    
@@ -260,6 +265,7 @@ void _menu::addVar(MW_TYPE t,char *s){
     var=(_var*)malloc(sizeof(_var)); if(var==NULL){menwiz::setError(320); return;}
     ((_var*)var)->type=MW_EDIT_TEXT;
     ((_var*)var)->val=s;
+    ((_var*)var)->old=s;
     }
 // menwiz::setError    
   else{menwiz::setError(110);}
@@ -972,7 +978,7 @@ int menwiz::getErrorMessage(bool fl){
       case 410: Serial.println(F("E410-Behavihour available only with 6 buttons. ignored"));break; 
       case 500: Serial.println(F("E500-out of user range (1-3)"));break;
       case 900: Serial.println(F("E900-Out of memory"));break; 
-      default:  Serial.println(F("E000-Unknown err"));break; 
+      default:  Serial.println(F("E000-Unknown err: "));Serial.println(error);break; 
       }
     }
 #else
@@ -1090,10 +1096,9 @@ void  menwiz::writeEeprom(){
 void  menwiz::readEeprom(){
   Etype temp;
   int addr=eeprom_offset;
-
   setError(0);
   for (int i=0;i<idx_m;i++){
-    if(m[i].type==MW_VAR){
+     if(m[i].type==MW_VAR){
 	switch(((_var*)m[i].var)->type){
 	    case MW_AUTO_BYTE:{
 		    temp.bytes[0] = EEPROM.read(addr);
@@ -1145,7 +1150,7 @@ void  menwiz::readEeprom(){
 			memset(cp,32,l);
 			cp[l]=0;
 			for(n=0;n<l;n++){
-               c=EEPROM.read(addr+n);
+                           c=EEPROM.read(addr+n);
 			   if ((int)c==0){ 
 				  n=l;
 				  }
@@ -1153,8 +1158,8 @@ void  menwiz::readEeprom(){
 				  cp[n]=c;
 			   }
 			addr=addr+l+1;
-            }
-	        break;
+              }
+	                break;
 	    }
       }
     }
