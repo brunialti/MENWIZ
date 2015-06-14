@@ -55,6 +55,8 @@ extern const char MW_ver[];
 // ---------------------------------------------------------------------------
 #define MAX_MENU       	50   //maximum number of nodes (absolute supported max number of addMenu calls)
 #define MAX_OPTXMENU   	10    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
+#define MW_BOOL_ON      "Ein"
+#define MW_BOOL_OFF     "Aus"
 
 // OTHER SIZES 
 // ---------------------------------------------------------------------------
@@ -62,11 +64,11 @@ extern const char MW_ver[];
 
 // VALUE TYPES
 // ---------------------------------------------------------------------------
-#define MW_LIST         11  //OPTION LIST
-#define MW_BOOL     	12  //ON/OFF TOGGLE
-#define MW_AUTO_INT    	13  //INTEGER VALUE WITH INCREMENT STEP
-#define MW_AUTO_FLOAT  	14  //FLOATING POINT VALUE WITH INCREMENT STEP
-#define MW_AUTO_BYTE   	15  //byte VALUE WITH INCREMENT STEP
+#define MW_LIST         11  //int   OPTION LIST
+#define MW_BOOL     	12  //bool  ON/OFF TOGGLE
+#define MW_AUTO_INT    	13  //int   INTEGER VALUE WITH INCREMENT STEP
+#define MW_AUTO_FLOAT  	14  //float FLOATING POINT VALUE WITH INCREMENT STEP
+#define MW_AUTO_BYTE   	15  //byte  BYTE VALUE WITH INCREMENT STEP
 #define MW_ACTION      	16  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
 #define MW_EDIT_INT    	17  //not implemented yet
 #define MW_EDIT_FLOAT  	18  //not implemented yet
@@ -207,6 +209,7 @@ public:
   void     begin(void *,int, int);
   void     addSplash(char *,int);
   void     addUsrScreen(void (*f)(), unsigned long);
+  void     showUsrScreen();
   void     addUsrNav(int (*f)(), int);
   void     setBehaviour(MW_FLAGS,bool);
   void     setCurrentUser(int);

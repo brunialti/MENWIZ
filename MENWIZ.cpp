@@ -345,6 +345,11 @@ void menwiz::drawUsrScreen(char *scr){
 	}  
   }
 
+
+void menwiz::showUsrScreen(){
+  tm_push=millis()-tm_usrScreen-1;   //we just set tm_push, so that the userscreen comes up
+}
+
 void menwiz::draw(){
   int ret;
   int long lap1,lap2;
@@ -371,7 +376,7 @@ void menwiz::draw(){
   //EXIT MENU SCREEN IF CANCEL BUTTON IS PUSHED
   // if the cancel button is pushed while in menu root, let the userscreen come up
   if ( (ret==MW_BTE) && ((cur_mode==MW_MODE_MENU)) && (cur_menu->type==MW_ROOT)){
-    tm_push=millis()-tm_usrScreen-1;   //we just set tm_push, so that the userscreen comes up
+    showUsrScreen();
     ret = MW_BTNULL;                   //skip cancel button
   } 
   // ------ SPECIAL CASES END --------
@@ -604,7 +609,7 @@ void menwiz::drawVar(_menu *mc){
         BLANKLINE(buf,i,col);
         }
       lcd->setCursor(0,1);
-      SFORM(buf,VBOOL(((_var*)mc->var)->val)?"ON":"OFF",(int) col);
+      SFORM(buf,VBOOL(((_var*)mc->var)->val)?MW_BOOL_ON:MW_BOOL_OFF,(int) col);
       break;      
     case MW_ACTION:
       for(i=2;i<row;i++){
