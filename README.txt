@@ -29,14 +29,18 @@ WHAT IS NEW IN THE LATEST VERSION
 - UsrScreen will be shown, on cancel, if in menu root
 - switched from boolean to bool
 
-Latest version: V 1.3.2 (April 29 2014):
+Latest version: V 1.3.2 (July 8 2015):
 
 - Fixed the option MW_MENU_INDEX bug.
 - It is now possible to set up to 3 users and to set access grant to submenus for each one of   them with the following methods:
   menwiz::setCurrentUser(int);
   _menu:: setBehaviour(MW_GRANT_USERx, Boolean);
-- New data type added: the long awaited editable text MW_EDIT_TEXT. It works for now *only*   in ì6 buttons modeî. The variable is not buffered, that is any change will take immediate   effect: when you leave the variable editing with exit button, the changes will affect the   original char variable.
+- New data type added: the long awaited editable text MW_EDIT_TEXT. It works for now *only*   in ‚Äú6 buttons mode‚Äù. The variable is not buffered, that is any change will take immediate   effect: when you leave the variable editing with exit button, the changes will affect the   original char variable.
 - The method getLastbutton of the class menwiz let available the last pushed button code
+- Eeprom.update instead of Eeprom.write
+- Eeprom offset
+- Eeprom automatic save on confirm
+- Eeprom read will check first byte to determine if an eeprom was written. If not it is written immediately. Useful after flashing or changes...
 
 KNOWN LIMITATIONS AND BUGS
 
