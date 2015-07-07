@@ -311,7 +311,7 @@ void menwiz::begin(void *l,int c, int r){
   col=c;
   lcd=(MW_LCD*)l; 
   lcd->begin(c,r);  //  LCD size
-  lcd->setBacklight(HIGH);
+//  lcd->setBacklight(HIGH);
 //  lcd->noCursor();
   lcd->noBlink();
   lcd->createChar(0,(uint8_t*)c0);
@@ -1035,8 +1035,8 @@ int menwiz::freeRam () {
 void  menwiz::writeEeprom(){
   Etype temp;
   int addr=eeprom_offset;
-
   setError(0);
+  EEPROM.update(addr++, 42); //First byte signals, that we actually have stored an EEPROM!
   for (int i=0;i<idx_m;i++){
 		if(m[i].type==MW_VAR){
 			switch(((_var*)m[i].var)->type){
@@ -1092,12 +1092,17 @@ void  menwiz::writeEeprom(){
 				}//switch
 		   }//if
 		}//for
+    Serial.println("Menu Eeprom written!");
    }//function
 
 void  menwiz::readEeprom(){
   Etype temp;
   int addr=eeprom_offset;
   setError(0);
+  if (EEPROM.read(addr++)!=42) {
+    Serial.println("no Eeprom was stored!");
+    return writeEeprom(); //We dont have an EEPROM stored. So we will store it now!
+  }
   for (int i=0;i<idx_m;i++){
      if(m[i].type==MW_VAR){
 	switch(((_var*)m[i].var)->type){
@@ -1164,6 +1169,8 @@ void  menwiz::readEeprom(){
 	    }
       }
     }
+
+    Serial.println("Menu Eeprom read!");
   }
 
 #endif

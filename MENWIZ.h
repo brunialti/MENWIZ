@@ -224,8 +224,8 @@ public:
   static void setError(int err);     //sets the error
 
 #ifdef EEPROM_SUPPORT
-  void     writeEeprom();
-  void     readEeprom();
+  void     writeEeprom(); //first byte signals if there is an Eeprom
+  void     readEeprom();  //if we try to read, but first byte is falsy, stores the current Eeprom (so we can flash)
   bool     eeprom_write_on_confirm;  //true will save the value to eeprom with every confirm
   int      eeprom_offset;//default at 0
 #endif
