@@ -25,10 +25,10 @@
 #include "MENWIZ.h"
 
 #define SCREATE(p,s)     p=(char *)malloc(strlen((char *)s)+1); strcpy((char *)p,(char *)s)
-#define SFORM(b,s,l)     memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=NULL; lcd->print(b)
-#define TSFORM(b,s,l,c)  memset(b,32,l);strncpy_P(b,(const char PROGMEM*)s, min(col,strlen_P((char PROGMEM*) s))); b[strlen(b)]=' ';itoa(cur_menu->cur_item+1,tmp,10);strcat(tmp,"/");itoa(cur_menu->idx_o,tmp+strlen(tmp),10);b[col-strlen(tmp)-1]=c;memcpy(b+(col-strlen(tmp)),tmp,strlen(tmp));b[l]=NULL;lcd->print(b)
-#define FSFORM(b,s,l)    memset(b,32,l);memcpy_P(b,(const char PROGMEM*)s,min(l,strlen_P((const char PROGMEM*)s)));buf[l]=NULL;lcd->print(b);
-#define BLANKLINE(b,r,c) memset(b,32,c);b[c]=NULL; lcd->setCursor(0,r);lcd->print(b)
+#define SFORM(b,s,l)     memset(b,32,l); memcpy(b,s,strlen(s)); b[l]=0; lcd->print(b)
+#define TSFORM(b,s,l,c)  memset(b,32,l);strncpy_P(b,(const char PROGMEM*)s, min(col,strlen_P((char PROGMEM*) s))); b[strlen(b)]=' ';itoa(cur_menu->cur_item+1,tmp,10);strcat(tmp,"/");itoa(cur_menu->idx_o,tmp+strlen(tmp),10);b[col-strlen(tmp)-1]=c;memcpy(b+(col-strlen(tmp)),tmp,strlen(tmp));b[l]=0;lcd->print(b)
+#define FSFORM(b,s,l)    memset(b,32,l);memcpy_P(b,(const char PROGMEM*)s,min(l,strlen_P((const char PROGMEM*)s)));buf[l]=0;lcd->print(b);
+#define BLANKLINE(b,r,c) memset(b,32,c);b[c]=0; lcd->setCursor(0,r);lcd->print(b)
 
 
 
@@ -334,7 +334,7 @@ void menwiz::drawUsrScreen(char *scr){
 	  }
 	memset(buf,32,col); 
 	memcpy(buf,&scr[start],cur-start); 
-	buf[col]=NULL; 
+	buf[col]=0; 
     lcd->setCursor(0,i);
 	lcd->print(buf);
 	if (scr[cur]==0){
@@ -352,7 +352,7 @@ void menwiz::showUsrScreen(){
 
 void menwiz::draw(){
   int ret;
-  int long lap1,lap2;
+  unsigned int long lap1,lap2;
 
 //  setError(0);
   // get nav choice
@@ -508,7 +508,7 @@ void menwiz::drawMenu(_menu *mc){
 //	    lcd->setCursor(0,i);
 
 	    lcd->write((j==mc->cur_item)?126:(bitRead(m[op->sbm].flags,cur_user)?165:2));
-	    FSFORM(buf,m[op->sbm].label,(int) col-1);
+	    FSFORM(buf,m[op->sbm].label,(unsigned int) col-1);
 	    }
 	  }
 	else{// NOT MENU COLLAPSED
@@ -518,7 +518,7 @@ void menwiz::drawMenu(_menu *mc){
 	    lcd->write((j==mc->cur_item)?2:165);
           else 
             lcd->write((j==mc->cur_item)?126:165);
-	  FSFORM(buf,m[op->sbm].label,(int) col-1);
+	  FSFORM(buf,m[op->sbm].label,(unsigned int) col-1);
           }
         }
       else{// EMPTY LINE
@@ -530,11 +530,9 @@ void menwiz::drawMenu(_menu *mc){
 
 void menwiz::drawVar(_menu *mc){
   int rstart,rstop,i,j;
-  MW_TYPE t;
   _option *op;
 
 //  setError(0);
-  t=(MW_TYPE)((_var*)mc->var)->type;
   switch (((_var*)mc->var)->type){
     case MW_LIST:
       if(bitRead(mc->flags,MW_SCROLL_HORIZONTAL)){
@@ -562,7 +560,7 @@ void menwiz::drawVar(_menu *mc){
               op=(_option*)mc->o[j];
               lcd->setCursor(0,i);
               lcd->write((j==mc->cur_item)?0:165);
-              FSFORM(buf,op->label,col-1);
+              FSFORM(buf,op->label,(unsigned int)col-1);
               }
             else{
               BLANKLINE(buf,i,col);
@@ -644,11 +642,11 @@ void menwiz::drawList(_menu *mc, int nc){
       lcd->setCursor(pc*cw,pr);
       if(i<mc->idx_o){
 		lcd->write((i==mc->cur_item)?0:165);
-		FSFORM(buf,((_option*)mc->o[i])->label,(int)cw-1);
+		FSFORM(buf,((_option*)mc->o[i])->label,(unsigned int)cw-1);
 		}
       else{
 		memset(buf,32,cw);
-		buf[cw]=NULL;
+		buf[cw]=0;
 		lcd->print(buf);
 		}
      }
@@ -658,7 +656,7 @@ void menwiz::addSplash(char *s, int lap){
 int l;
   
   setError(0);
-  l=min(row*col+row,strlen(s));
+  l=min((unsigned)row*col+row,strlen(s));
   strncpy(sbuf,s,l);
   sbuf[l]=0; 
   tm_splash=lap;
@@ -734,14 +732,13 @@ int menwiz::scanNavButtons(){
   }
 #endif
 
-int menwiz::actNavButtons(int button){  
-int b;
+void menwiz::actNavButtons(int button){
 
   setError(0);
   if (button==MW_BTNULL){ 
     last_button=button;
-    return(button);
-    }
+    return;
+  }
   else{
     switch(button){
       case MW_BTU: 
@@ -866,7 +863,6 @@ void menwiz::actBTR(){
 
 void menwiz::actBTE(){ 
   _menu *cm;
-  _option* oc;
 
   last_button=MW_BTE;
   cm=cur_menu;

@@ -258,7 +258,7 @@ private:
   unsigned long tm_splash;      	//splash screen duration  
   unsigned long tm_usrScreen;   	//lap time before usrscreen  
   void     apply2vars(void (*f)(_menu *));
-  int      actNavButtons(int);
+  void     actNavButtons(int);
   void     drawMenu(_menu *);
   void     drawVar(_menu *);
   void     drawList(_menu *, int);
