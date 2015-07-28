@@ -209,7 +209,8 @@ public:
   void     begin(void *,int, int);
   void     addSplash(char *,int);
   void     addUsrScreen(void (*f)(), unsigned long);
-  void     showUsrScreen();
+  void     showUsrScreen();  //will set immediately into usrScreen
+  void     showMenuScreen(); //will set immediately into MenuScreen
   void     addUsrNav(int (*f)(), int);
   void     setBehaviour(MW_FLAGS,bool);
   void     setCurrentUser(int);

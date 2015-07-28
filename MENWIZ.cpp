@@ -331,23 +331,27 @@ void menwiz::drawUsrScreen(char *scr){
   for(int i=0;i<row;i++){
     while((scr[cur]!=MW_EOL_CHAR)&&(scr[cur]!=0)){
 	  cur++;
-	  }
-	memset(buf,32,col); 
-	memcpy(buf,&scr[start],cur-start); 
-	buf[col]=0; 
+    }
+    memset(buf,' ',col); //clear line buffer 
+    memcpy(buf,&scr[start],cur-start); 
+    buf[col]=0; 
     lcd->setCursor(0,i);
-	lcd->print(buf);
-	if (scr[cur]==0){
+    lcd->print(buf);
+    if (scr[cur]==0){
 	  return;
-	  }
-	cur++;
-	start=cur;
-	}  
-  }
+    }
+    cur++;
+    start=cur;
+  }  
+}
 
 
 void menwiz::showUsrScreen(){
   tm_push=millis()-tm_usrScreen-1;   //we just set tm_push, so that the userscreen comes up
+}
+
+void menwiz::showMenuScreen(){
+  tm_push=millis();   //we just set tm_push, so that the userscreen comes up
 }
 
 void menwiz::draw(){
@@ -596,11 +600,20 @@ void menwiz::drawVar(_menu *mc){
         BLANKLINE(buf,i,col);
         }
       lcd->setCursor(0,1);
+      strcpy(sbuf,dtostrf(VFLOAT(((_var*)mc->var)->lower),0,MW_FLOAT_DEC,buf));
+      strcat(sbuf," [");
+      strcat(sbuf,dtostrf(VFLOAT(((_var*)mc->var)->val),0,MW_FLOAT_DEC,buf));
+      strcat(sbuf,"] ");
+      strcat(sbuf,dtostrf(VFLOAT(((_var*)mc->var)->upper),0,MW_FLOAT_DEC,buf));
+/*
+      lcd->setCursor(0,1);
       lcd->print(dtostrf(VFLOAT(((_var*)mc->var)->lower),0,MW_FLOAT_DEC,buf));
       lcd->print(F(" ["));
       lcd->print(dtostrf(VFLOAT(((_var*)mc->var)->val),0,MW_FLOAT_DEC,buf));
       lcd->print(F("] "));
       lcd->print(dtostrf(VFLOAT(((_var*)mc->var)->upper),0,MW_FLOAT_DEC,buf));
+*/      
+      SFORM(buf,sbuf,col);
       break;
     case MW_BOOL:
       for(i=2;i<row;i++){
@@ -948,6 +961,8 @@ void menwiz::actBTC(){
     #ifdef EEPROM_SUPPORT
       if (eeprom_write_on_confirm) writeEeprom();
     #endif
+      //simple effect: blackout on save for 250ms
+      for (uint8_t j=0;j<100;j++){lcd->write(byte(255));}delay(250);
     }
   }
 
@@ -1032,7 +1047,7 @@ void  menwiz::writeEeprom(){
   Etype temp;
   int addr=eeprom_offset;
   setError(0);
-  EEPROM.update(addr++, 42); //First byte signals, that we actually have stored an EEPROM!
+  EEPROM.update(addr++, 42); //First byte signals (with the answer of everything), that we actually have stored an EEPROM!
   for (int i=0;i<idx_m;i++){
 		if(m[i].type==MW_VAR){
 			switch(((_var*)m[i].var)->type){
@@ -1096,7 +1111,7 @@ void  menwiz::readEeprom(){
   int addr=eeprom_offset;
   setError(0);
   if (EEPROM.read(addr++)!=42) {
-    Serial.println("no Eeprom was stored!");
+    Serial.println("No Eeprom was stored!");
     return writeEeprom(); //We dont have an EEPROM stored. So we will store it now!
   }
   for (int i=0;i<idx_m;i++){
