@@ -210,6 +210,7 @@ public:
   void     addUsrScreen(void (*f)(), unsigned long);
   void     showUsrScreen();  //will set immediately into usrScreen
   void     showMenuScreen(); //will set immediately into MenuScreen
+  void     setUsrConfirmMessage(MW_LABEL);
   void     addUsrConfirmAction(void (*f)()); //add Usr Confirm Action //not active on MW_ACTION
   void     addUsrNav(int (*f)(), int);
   void     setBehaviour(MW_FLAGS, bool);
@@ -252,6 +253,7 @@ public:
   void     actBTE();
   _menu    m[MAX_MENU];
 private:
+  MW_LABEL usrConfirmMessage;
   byte     row;
   byte     col;
   byte     cur_mode;

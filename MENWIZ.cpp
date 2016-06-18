@@ -41,7 +41,6 @@ bool    MW_invar=false;
 static char *buf;
 char tmp[6];
 
-const char MW_STR_CONFIRM[]={"[Confirm] to run."};
 const uint8_t c0[8]={B00000, B00000, B00001, B00010, B10100, B01000, B00000, B00000}; 
 const uint8_t c1[8]={B00000, B11100, B00100, B00100, B10101, B01110, B00100, B00000}; 
 const uint8_t c2[8]={B00000, B01010, B11111, B01110, B11111, B01010, B00000, B00000}; 
@@ -56,6 +55,7 @@ menwiz::menwiz(){
   bitWrite(flags,FL_USRSCREEN_DRAW,false);
   bitWrite(flags,MW_MENU_INDEX,true);
 
+  usrConfirmMessage = F("[Confirm] to run.");
   cur_user=MW_GRANT_USER1;
   usrScreen.fl=false;
   usrNav.fl=false;
@@ -284,13 +284,10 @@ void  _menu::addVar(MW_TYPE t,void (*f)()){
   }
 
 void menwiz::setCurrentUser(int u){
-
   setError(0);
-  if((u>=MW_GRANT_USER1)&&(u<=MW_GRANT_USER3))
-     cur_user=u;
-  else
-     setError(500);
-  }
+  if((u>=MW_GRANT_USER1)&&(u<=MW_GRANT_USER3)) cur_user=u;
+  else setError(500);
+}
 
 void menwiz::addUsrNav(int (*f)(), int nb){
   setError(0);
@@ -298,6 +295,10 @@ void menwiz::addUsrNav(int (*f)(), int nb){
   usrNav.fi=f;
   if ((nb==4) or (nb==6)) MW_navbtn=nb;
   else setError(130);
+}
+
+void menwiz::setUsrConfirmMessage(MW_LABEL msg){
+   usrConfirmMessage = msg;
 }
 void menwiz::addUsrConfirmAction(void (*f)()){
   setError(0);
@@ -630,7 +631,7 @@ void menwiz::drawVar(_menu *mc){
         BLANKLINE(buf,i,col);
         }
       lcd->setCursor(0,1);
-      SFORM(buf,MW_STR_CONFIRM,(int) col);
+      FSFORM(buf,usrConfirmMessage,(int) col);
       break;      
     case MW_EDIT_TEXT:
       for(i=2;i<row;i++){
