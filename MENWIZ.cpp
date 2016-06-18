@@ -67,6 +67,7 @@ menwiz::menwiz(){
   root=NULL;
   #ifdef EEPROM_SUPPORT
     eeprom_offset=0;
+    eeprom_version=1;
     eeprom_write_on_confirm=false;
   #endif
 
@@ -292,15 +293,17 @@ void menwiz::setCurrentUser(int u){
   }
 
 void menwiz::addUsrNav(int (*f)(), int nb){
-
   setError(0);
   usrNav.fl=true;
   usrNav.fi=f;
-  if ((nb==4) or (nb==6))
-     MW_navbtn=nb;
-  else     
-     setError(130);
-  }
+  if ((nb==4) or (nb==6)) MW_navbtn=nb;
+  else setError(130);
+}
+void menwiz::addUsrConfirmAction(void (*f)()){
+  setError(0);
+  usrConfirmAction.fl=true;
+  usrConfirmAction.fv=f;
+}
 
 void menwiz::begin(void *l,int c, int r){
 
@@ -691,10 +694,10 @@ void menwiz::navButtons(int btu,int btd,int bte,int btc){
   setError(0);
   btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){setError(900); return;}
 
-  if(btu!=0){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
-  if(btd!=0){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
-  if(bte!=0){btx->BTE.assign(bte);  btx->BTE.setMode(OneShot);  btx->BTE.turnOnPullUp();} 
-  if(btc!=0){btx->BTC.assign(btc);  btx->BTC.setMode(OneShot);  btx->BTC.turnOnPullUp();} 
+  if(btu!=255){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
+  if(btd!=255){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
+  if(bte!=255){btx->BTE.assign(bte);  btx->BTE.setMode(OneShot);  btx->BTE.turnOnPullUp();} 
+  if(btc!=255){btx->BTC.assign(btc);  btx->BTC.setMode(OneShot);  btx->BTC.turnOnPullUp();} 
 
   // bouncing disarm 
   btx->BTU.check();
@@ -715,12 +718,12 @@ void menwiz::navButtons(int btu,int btd,int btl,int btr,int bte,int btc){
 
   setError(0);
   btx=(_nav*)malloc(sizeof(_nav));if(btx==NULL){setError(900); return;}
-  if(btu!=0){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
-  if(btd!=0){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
-  if(btl!=0){btx->BTL.assign(btl);  btx->BTL.setMode(OneShot);  btx->BTL.turnOnPullUp();} 
-  if(btr!=0){btx->BTR.assign(btr);  btx->BTR.setMode(OneShot);  btx->BTR.turnOnPullUp();} 
-  if(bte!=0){btx->BTE.assign(bte);  btx->BTE.setMode(OneShot);  btx->BTE.turnOnPullUp();} 
-  if(btc!=0){btx->BTC.assign(btc);  btx->BTC.setMode(OneShot);  btx->BTC.turnOnPullUp();} 
+  if(btu!=255){btx->BTU.assign(btu);  btx->BTU.setMode(OneShot);  btx->BTU.turnOnPullUp();} 
+  if(btd!=255){btx->BTD.assign(btd);  btx->BTD.setMode(OneShot);  btx->BTD.turnOnPullUp();} 
+  if(btl!=255){btx->BTL.assign(btl);  btx->BTL.setMode(OneShot);  btx->BTL.turnOnPullUp();} 
+  if(btr!=255){btx->BTR.assign(btr);  btx->BTR.setMode(OneShot);  btx->BTR.turnOnPullUp();} 
+  if(bte!=255){btx->BTE.assign(bte);  btx->BTE.setMode(OneShot);  btx->BTE.turnOnPullUp();} 
+  if(btc!=255){btx->BTC.assign(btc);  btx->BTC.setMode(OneShot);  btx->BTC.turnOnPullUp();} 
 
   // bouncing disarm 
   btx->BTU.check();
@@ -956,15 +959,18 @@ void menwiz::actBTC(){
       ((_act*)cur_menu->var)->action();}
     else if(((_var*)cur_menu->var)->type==MW_EDIT_TEXT){        
       }
-	cur_menu=&m[cur_menu->parent];
+    cur_menu=&m[cur_menu->parent];
     MW_invar=false;
-    #ifdef EEPROM_SUPPORT
-      if (eeprom_write_on_confirm) writeEeprom();
-    #endif
+    if(((_var*)cur_menu->var)->type!=MW_ACTION){ //we dont need eeprom or effect on action
+      #ifdef EEPROM_SUPPORT
+        if (eeprom_write_on_confirm) writeEeprom();
+      #endif
+      if (usrConfirmAction.fl) usrConfirmAction.fv();
       //simple effect: blackout on save for 250ms
       for (uint8_t j=0;j<100;j++){lcd->write(byte(255));}delay(250);
     }
   }
+}
 
 int menwiz::error = 0;
 void menwiz::setError(int err){
@@ -1001,10 +1007,9 @@ int menwiz::getErrorMessage(bool fl){
   }
 
 void menwiz::setBehaviour(MW_FLAGS b, bool v){
-
   setError(0);  
   bitWrite(flags,b,v);
-  }
+}
   
 void _menu::setBehaviour(MW_FLAGS b, bool v){
 
@@ -1047,7 +1052,7 @@ void  menwiz::writeEeprom(){
   Etype temp;
   int addr=eeprom_offset;
   setError(0);
-  EEPROM.update(addr++, 42); //First byte signals (with the answer of everything), that we actually have stored an EEPROM!
+  EEPROM.update(addr++, eeprom_version); //First byte signals the eeprom_version and that we actually have stored an EEPROM!
   for (int i=0;i<idx_m;i++){
 		if(m[i].type==MW_VAR){
 			switch(((_var*)m[i].var)->type){
@@ -1103,14 +1108,15 @@ void  menwiz::writeEeprom(){
 				}//switch
 		   }//if
 		}//for
-    Serial.println("Menu Eeprom written!");
+    Serial.print("Menu Eeprom written! Bytes: ");
+    Serial.println(addr);
    }//function
 
 void  menwiz::readEeprom(){
   Etype temp;
   int addr=eeprom_offset;
   setError(0);
-  if (EEPROM.read(addr++)!=42) {
+  if (EEPROM.read(addr++)!=eeprom_version) {
     Serial.println("No Eeprom was stored!");
     return writeEeprom(); //We dont have an EEPROM stored. So we will store it now!
   }

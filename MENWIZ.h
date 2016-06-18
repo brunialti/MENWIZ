@@ -53,7 +53,7 @@ extern const char MW_ver[];
 
 // SIZES (DIMENSIONAL LIMITS OF STATICALLY ALLOCATED STRUCTURES)
 // ---------------------------------------------------------------------------
-#define MAX_MENU       	50   //maximum number of nodes (absolute supported max number of addMenu calls)
+#define MAX_MENU       	60   //maximum number of nodes (absolute supported max number of addMenu calls)
 #define MAX_OPTXMENU   	10    //maximum number of options/submenus for each node (max number of addItem call for each menu item) 
 #define MW_BOOL_ON      "Ein"
 #define MW_BOOL_OFF     "Aus"
@@ -128,7 +128,6 @@ extern const char MW_ver[];
 // OTHERS
 // ---------------------------------------------------------------------------
 //#define MW_EOL_CHAR    0x0A
-//#define MW_EOL_CHAR    0x0A
 #define MW_EOL_CHAR    '\n'
 #define MW_TYPE        uint8_t
 #define MW_LCD         LiquidCrystal   // this could help to change the library: your lcd data type
@@ -179,14 +178,14 @@ public:
 class _menu{
 public:
            _menu();
-  void     addVar(MW_TYPE, int*);
-  void     addVar(MW_TYPE, int*, int, int, int);
-  void     addVar(MW_TYPE, float*, float, float, float);
-  void     addVar(MW_TYPE, byte*,byte ,byte ,byte);
-  void     addVar(MW_TYPE, bool*);
-  void     addVar(MW_TYPE, void (*f)());
-  void     addVar(MW_TYPE t,char *s);
-  void     setBehaviour(MW_FLAGS,bool);
+  void     addVar(MW_TYPE, int*);                       //type, ref
+  void     addVar(MW_TYPE, int*, int, int, int);        //type, ref, min, max, step
+  void     addVar(MW_TYPE, float*, float, float, float);//type, ref, min, max, step
+  void     addVar(MW_TYPE, byte*,byte ,byte ,byte);     //type, ref, min, max, step
+  void     addVar(MW_TYPE, bool*);      //MW_BOOL
+  void     addVar(MW_TYPE, void (*f)());//MW_ACTION
+  void     addVar(MW_TYPE t, char *s);
+  void     setBehaviour(MW_FLAGS, bool);
   _option* addItem(int, MW_LABEL);
 
   MW_TYPE  type;
@@ -211,8 +210,9 @@ public:
   void     addUsrScreen(void (*f)(), unsigned long);
   void     showUsrScreen();  //will set immediately into usrScreen
   void     showMenuScreen(); //will set immediately into MenuScreen
+  void     addUsrConfirmAction(void (*f)()); //add Usr Confirm Action //not active on MW_ACTION
   void     addUsrNav(int (*f)(), int);
-  void     setBehaviour(MW_FLAGS,bool);
+  void     setBehaviour(MW_FLAGS, bool);
   void     setCurrentUser(int);
   _menu*   addMenu(MW_TYPE, _menu *, MW_LABEL);
   void     draw();
@@ -226,9 +226,10 @@ public:
 
 #ifdef EEPROM_SUPPORT
   void     writeEeprom(); //first byte signals if there is an Eeprom
-  void     readEeprom();  //if we try to read, but first byte is falsy, stores the current Eeprom (so we can flash)
+  void     readEeprom();  //if we try to read, but first byte is falsy, stores the current Eeprom (
   bool     eeprom_write_on_confirm;  //true will save the value to eeprom with every confirm
   int      eeprom_offset;//default at 0
+  byte     eeprom_version;//default at 1
 #endif
 
 #ifdef BUTTON_SUPPORT 
@@ -243,6 +244,7 @@ public:
   char*    sbuf;             //lcd screen buffer (+ 1 for each line) 
   _cback   usrScreen;	     //callback
   _cback   usrNav;    
+  _cback   usrConfirmAction;    
   byte     idx_m;
   _menu*   cur_menu;
   byte     cur_user;
